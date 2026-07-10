@@ -10,6 +10,8 @@ build/
 dist/
 .venv/
 *.pkl
+core/3ddfa_v3
 test_texture_dataset/
 test_dataset/
 test_dataset_4class/
+test_input/
