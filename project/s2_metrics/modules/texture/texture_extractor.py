@@ -1,4 +1,4 @@
-"""TextureExtractorV2 — полная замена старого extractor по ТЗ Texture V2.
+"""TextureExtractor — полная замена старого extractor по ТЗ Texture V2.
 
 Tier 1 (12 quality-robust): работают на 1999 low-Q фото
 Tier 2 (8 HQ): требуют overall>=0.5 или sharpness>=200
@@ -82,8 +82,8 @@ PATCH_FALLBACK = 40
 MIN_VALID_PATCHES = 4
 
 
-class TextureExtractorV2:
-    """Новый TextureExtractor V2 — полная замена старого."""
+class TextureExtractor:
+    """TextureExtractor — полная замена старого."""
 
     def __init__(self):
         self._last_quality = {}
@@ -284,12 +284,12 @@ class TextureExtractorV2:
             noise = quality.get("q_noise_sigma", quality.get("noise_level", 0))
             block = quality.get("q_jpeg_blockiness", quality.get("jpeg_blockiness", 0))
 
-            # p10 lapl 20.5, native_tenengrad p10 ~25 for letterboxed 424x500, p90 noise 3.66, block 0.01156
+            # p10 lapl 25.0, native_tenengrad p10 25.0, p90 noise 3.0, p90 block 1.9 for letterboxed 424x500
             if self._valid_patches < MIN_VALID_PATCHES:
                 self._last_assessability = "not_assessable"
-            elif (lapl < 20.5 and native_tenengrad < 25) or (noise > 3.66 and block > 0.01156):
+            elif (lapl < 25.0 and native_tenengrad < 25.0) or (noise > 3.0 and block > 1.9):
                 self._last_assessability = "not_assessable"
-            elif (lapl < 20.5 or native_tenengrad < 25) or (noise > 3.66 or block > 0.01156):
+            elif (lapl < 25.0 or native_tenengrad < 25.0) or (noise > 3.0 or block > 1.9):
                 self._last_assessability = "low_confidence"
             else:
                 self._last_assessability = "eligible"
@@ -789,7 +789,10 @@ class TextureExtractorV2:
             hh_masked = hh[mask_ll > 0]
 
             if ll_masked.size == 0 or hh_masked.size == 0:
-                return 0.0
+                ll_masked = ll.ravel()
+                hh_masked = hh.ravel()
+                if ll_masked.size == 0 or hh_masked.size == 0:
+                    return 0.0
             ll_energy = np.mean(ll_masked ** 2)
             hh_energy = np.mean(hh_masked ** 2)
             return float(hh_energy / (ll_energy + 1e-6))
@@ -870,8 +873,9 @@ class TextureExtractorV2:
             # Specular detection: high min(R,G,B) + low saturation
             R, G, B = rgb[:, :, 0].astype(float), rgb[:, :, 1].astype(float), rgb[:, :, 2].astype(float)
             min_rgb = np.minimum(np.minimum(R, G), B)
-            sat = np.max([R, G, B], axis=0) - np.min([R, G, B], axis=0)
-            spec_mask = (min_rgb > 200) & (sat < 30) & (mask > 0)
+            max_rgb = np.maximum(np.maximum(R, G), B)
+            sat = max_rgb - min_rgb
+            spec_mask = (min_rgb > 180) & (sat < 40) & (mask > 0)
             if not spec_mask.any():
                 return 1.0  # No specular = isotropic
             labeled = measure.label(spec_mask)
@@ -898,7 +902,3 @@ class TextureExtractorV2:
         if feature_name in PHYSICAL_AUX_METRICS:
             return 1.0
         return 0.5
-
-
-# Backward compatibility: старый класс-алиас
-TextureExtractor = TextureExtractorV2

@@ -12,7 +12,7 @@ from ..shared.schemas import PipelineDataset, Stage1Record, Stage2Record
 from ..shared.utils import ensure_dir, load_json, load_pickle, load_rgba_png, save_json
 from .modules import GeometryIdentityResolver, TextureSkinClassifier, load_geometry_metric_catalog, load_texture_metric_catalog
 from .modules.geometry_extractor import GeometryExtractor
-from .modules.texture.extractor_v2 import TextureExtractorV2
+from .modules.texture.texture_extractor import TextureExtractor
 from .texture_anomaly import CohortTextureAnomalyDetectorV2
 from .physical_features import PhysicalTextureExtractor
 
@@ -48,7 +48,7 @@ class MetricsEngine:
         self.texture_classifier = TextureSkinClassifier(texture_leaderboard)
         self.geometry_catalog = load_geometry_metric_catalog()
         self.texture_catalog = load_texture_metric_catalog(texture_leaderboard)
-        self.texture_extractor = TextureExtractorV2()
+        self.texture_extractor = TextureExtractor()
         self.geometry_extractor = GeometryExtractor()
         self.cohort_detector = CohortTextureAnomalyDetectorV2()
         self.physical_extractor = PhysicalTextureExtractor()

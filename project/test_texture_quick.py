@@ -9,7 +9,7 @@ sys.path.insert(0, str(DEEPUTIN_ROOT))
 
 # Импортируем напрямую из модуля
 sys.path.insert(0, str(DEEPUTIN_ROOT / "s2_metrics" / "modules"))
-from texture_extractor import TextureExtractor
+from s2_metrics.modules.texture.texture_extractor import TextureExtractor
 
 DATASET_ROOT = Path(__file__).resolve().parent.parent / "imgtest" / "2"
 FOLDERS = ["real", "silicone"]  # real2 - JPG без масок, пропускаем

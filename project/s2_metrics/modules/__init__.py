@@ -1,7 +1,7 @@
 """Модули этапа 2."""
 
 from .geometry_extractor import GeometryExtractor
-from .texture.extractor_v2 import TextureExtractorV2 as TextureExtractor
+from .texture.texture_extractor import TextureExtractor
 from .zone_analyzer import ZoneAnalyzer
 from .geometry import GEOMETRY_CORE_METRICS, GeometryIdentityResolver, load_geometry_metric_catalog
 from .texture.classifier import TextureSkinClassifierV2 as TextureSkinClassifier

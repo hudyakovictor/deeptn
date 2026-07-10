@@ -30,7 +30,7 @@ DEEPUTIN_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(DEEPUTIN_ROOT))
 sys.path.insert(0, str(DEEPUTIN_ROOT / "s2_metrics" / "modules"))
 
-from texture_extractor import TextureExtractor
+from s2_metrics.modules.texture.texture_extractor import TextureExtractor
 
 MODEL_PATH = DEEPUTIN_ROOT / "s2_metrics" / "modules" / "texture" / "skin_classifier_model.pkl"
 DEFAULT_DATASET = DEEPUTIN_ROOT / "test_dataset"

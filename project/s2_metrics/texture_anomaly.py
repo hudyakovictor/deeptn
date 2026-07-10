@@ -192,7 +192,7 @@ class CohortTextureAnomalyDetectorV2:
         return np.array(x, dtype=float)
 
     def _interpret(self, score: float, quality: float, flags: Dict) -> str:
-        if quality < 0.35:
+        if quality < 0.28:
             return "low_quality_cannot_assess"
         if score < 0.3:
             return "texture_consistent_with_cohort"

@@ -4,10 +4,8 @@ from __future__ import annotations
 import gc
 import hashlib
 import os
-import pickle
 import sys
 from argparse import Namespace
-from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -383,95 +381,6 @@ class ReconstructionAdapter:
         return visible
 
 
-# --- Дисковый кэш реконструкции (ТЗ: один раз извлечь 3D, дальше только пары / выравнивание) ---
-RECONSTRUCTION_CACHE_NAME = "reconstruction_v1.pkl"
-
-
-def _sanitize_payload_for_disk(payload: dict[str, Any]) -> dict[str, Any]:
-    """Убираем raw_result и тензоры; оставляем только то, что нужно UV/маскам и сравнению."""
-    out: dict[str, Any] = {}
-    for k, v in payload.items():
-        if k == "raw_result":
-            continue
-        if hasattr(v, "detach"):
-            out[k] = v.detach().cpu().numpy()
-        elif isinstance(v, np.ndarray):
-            out[k] = v
-        elif isinstance(v, dict):
-            out[k] = {
-                sk: sv
-                for sk, sv in v.items()
-                if isinstance(sv, (str, int, float, bool)) or sv is None
-            }
-        elif isinstance(v, (str, int, float, bool)) or v is None:
-            out[k] = v
-    return out
-
-
-def save_reconstruction_cache(
-    entry_dir: Path,
-    result: ReconstructionResult,
-    neutral_expression: bool,
-    identity_only: bool = False,
-) -> Path:
-    """Сохраняет геометрию 3DDFA с MD5-хэшем для верификации."""
-    entry_dir.mkdir(parents=True, exist_ok=True)
-    path = entry_dir / RECONSTRUCTION_CACHE_NAME
-
-    file_hash = compute_image_hash(result.image_path)
-
-    slim = replace(result, payload=_sanitize_payload_for_disk(result.payload))
-    tmp = path.with_suffix(".pkl.tmp")
-    with open(tmp, "wb") as f:
-        pickle.dump(
-            {
-                "v": 1,
-                "neutral_expression": neutral_expression,
-                "identity_only": identity_only,
-                "file_hash": file_hash,
-                "result": slim
-            },
-            f,
-            protocol=4,
-        )
-    tmp.replace(path)
-    return path
-
-
-def load_reconstruction_cache(
-    entry_dir: Path,
-    image_path: Path,
-    neutral_expression: bool,
-    identity_only: bool = False,
-    *,
-    verify_hash: bool = True,
-) -> ReconstructionResult | None:
-    """Загрузка кэша по MD5-хэшу исходника (verify_hash=False — только pkl на диске)."""
-    path = entry_dir / RECONSTRUCTION_CACHE_NAME
-    if not path.exists():
-        return None
-
-    file_hash = compute_image_hash(image_path) if verify_hash else None
-
-    try:
-        with open(path, "rb") as f:
-            data = pickle.load(f)
-    except Exception:
-        return None
-    if not isinstance(data, dict) or data.get("v") != 1:
-        return None
-    if bool(data.get("neutral_expression")) != bool(neutral_expression):
-        return None
-    if bool(data.get("identity_only", False)) != bool(identity_only):
-        return None
-
-    if verify_hash and data.get("file_hash") != file_hash:
-        return None
-
-    r = data.get("result")
-    if not isinstance(r, ReconstructionResult):
-        return None
-    return replace(r, image_path=image_path)
 
 
 def resolve_reconstruction(
@@ -481,17 +390,9 @@ def resolve_reconstruction(
     neutral_expression: bool,
     identity_only: bool = False,
 ) -> ReconstructionResult:
-    """Кэш на диске или полный reconstruct + сохранение."""
-    cached = load_reconstruction_cache(
-        entry_dir, image_path, neutral_expression, identity_only
-    )
-    if cached is not None:
-        log_progress(f"Reconstruction disk cache hit: {image_path.name}")
-        return cached
-    r = adapter.reconstruct(
+    """Прямая реконструкция без дискового кэша."""
+    return adapter.reconstruct(
         image_path,
         neutral_expression=neutral_expression,
         identity_only=identity_only,
     )
-    save_reconstruction_cache(entry_dir, r, neutral_expression, identity_only)
-    return r

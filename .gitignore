@@ -1,1 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+test_output/
+test_input_single/
+data/
+*.egg-info/
+build/
+dist/
+.venv/
+*.pkl
 test_texture_dataset/
+test_dataset/
+test_dataset_4class/

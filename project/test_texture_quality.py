@@ -6,7 +6,7 @@ from collections import defaultdict
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from s2_metrics.modules.texture_extractor import TextureExtractor
+from s2_metrics.modules.texture.texture_extractor import TextureExtractor
 
 DATASET_ROOT = Path("/Volumes/SDCARD/анозер текст")
 FOLDERS = ["live_clean", "live_noise", "mask_clean", "put_context"]
