@@ -4,7 +4,6 @@ __pycache__/
 .DS_Store
 test_output/
 test_input_single/
-data/
 *.egg-info/
 build/
 dist/

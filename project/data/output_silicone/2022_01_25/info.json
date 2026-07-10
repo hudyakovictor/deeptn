@@ -1,0 +1,54 @@
+{
+  "age_years": 69.3,
+  "dataset": "main",
+  "date": "2022-01-25",
+  "expression_flags": {
+    "jaw_excluded": false,
+    "neutralized": false,
+    "smile_excluded": false
+  },
+  "face_bbox": [
+    8,
+    5,
+    196,
+    171
+  ],
+  "face_mask_path": "data/output_silicone/2022_01_25/face_mask.png",
+  "image_size": [
+    800,
+    800
+  ],
+  "photo_id": "2022_01_25",
+  "pose": {
+    "age_years": 69.3,
+    "bucket": "frontal",
+    "confidence": 0.8,
+    "date": "2022-01-25",
+    "photo_id": "2022_01_25",
+    "pitch": 8.745573997497559,
+    "pose_source": "3ddfa_v3",
+    "roll": 0.1704404205083847,
+    "yaw": 2.053518295288086
+  },
+  "quality": {
+    "blur_value": 244.58520425661854,
+    "face_min_dim": 0,
+    "is_jpeg_blocky": true,
+    "is_motion_blurred": false,
+    "is_over_smoothed": false,
+    "jpeg_blockiness": 1.6746762275695801,
+    "noise_level": 1.0965875387191772,
+    "overall_quality": 0.46181032121918286,
+    "ppIOD": 0.0,
+    "q_laplacian_var": 0.0,
+    "q_tenengrad": 0.0,
+    "q_valid_patches": 0,
+    "sharpness_score": 0.24458520425661853
+  },
+  "readiness": {
+    "geometry": "available",
+    "texture": "available"
+  },
+  "reconstruction_path": "data/output_silicone/2022_01_25/reconstruction.pkl",
+  "source_path": "/tmp/test_silicone/2022_01_25.jpg"
+}
