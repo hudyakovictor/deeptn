@@ -1,0 +1,76 @@
+{
+  "filename": "2024_07_03.jpg",
+  "image_size": [
+    800,
+    800
+  ],
+  "3ddfa_success": true,
+  "mediapipe_success": true,
+  "iris_available": true,
+  "yaw": 0.0,
+  "pitch": 0.0,
+  "roll": 0.0,
+  "ракурс": "frontal",
+  "ракурс_сторона": "C",
+  "видимый_глаз": "both",
+  "trans_params": [
+    800.0,
+    800.0,
+    0.343131,
+    248.838932,
+    339.352364
+  ],
+  "eye_scores": {
+    "aperture_shrinkage": 0.866314,
+    "eyelid_thickness": 0.75,
+    "lid_smoothness": 1.0,
+    "eyelid_edge_sharpness": 1.0,
+    "eye_symmetry_anomaly": 1.0,
+    "sclera_iris_boundary": 1.0,
+    "pupil_apparent_size": 1.0,
+    "orbit_area_ratio": 0.246373,
+    "periocular_lbp_entropy": 1.0,
+    "eyelid_sss": 0.004939,
+    "iris_visible_ratio": 0.168991,
+    "iris_center_offset": 0.839375,
+    "sclera_asymmetry": 0.0
+  },
+  "cross_scores": {
+    "landmark_discrepancy": 0.770353,
+    "specular_brdf": 0.558495,
+    "eye_contour_divergence": 0.492842,
+    "subsurface_violation": 0.102061,
+    "ear_texture_cliff": 0.522821,
+    "skin_tone_mismatch": 0.338198
+  },
+  "combined_mean": 0.613724,
+  "combined_median": 0.75,
+  "combined_max": 1.0,
+  "eye_mean": 0.682769,
+  "cross_mean": 0.464128,
+  "top5_methods": [
+    [
+      "lid_smoothness",
+      1.0
+    ],
+    [
+      "eyelid_edge_sharpness",
+      1.0
+    ],
+    [
+      "eye_symmetry_anomaly",
+      1.0
+    ],
+    [
+      "sclera_iris_boundary",
+      1.0
+    ],
+    [
+      "pupil_apparent_size",
+      1.0
+    ]
+  ],
+  "_complete": true,
+  "_filename": "2024_07_03.jpg",
+  "_label": "silicone"
+}

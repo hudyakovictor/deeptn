@@ -28,15 +28,13 @@ warnings.filterwarnings('ignore')
 from face_box import face_box
 from model.recon import face_model
 from util.preprocess import get_data_path
-from util.io import back_resize_ldms, back_resize_crop_img
+from util.io import back_resize_ldms
 
 # ==================== MediaPipe ====================
 import mediapipe as mp
 
 # ==================== SciPy ====================
-from scipy.ndimage import distance_transform_edt
 from scipy.spatial import cKDTree
-from scipy.stats import skew as sp_skew
 
 # ==================== Head Pose Estimation ====================
 _HPE_PATH = "/Users/victorkhudyakov/dutin/core/head-pose-estimation"
@@ -376,69 +374,56 @@ class EyeMaskDetector:
         scores['aperture_shrinkage'], details['aperture'] = self._aperture_shrinkage(
             mp_lm, ldm68_orig, ldm106_orig, h, w)
 
-        # === METHOD 2: Iris-to-Aperture Ratio ===
-        scores['iris_aperture_ratio'], details['iris_ratio'] = self._iris_aperture_ratio(
+        # === METHOD 2: Eyelid Thickness (INVERTED: real>silicone → 1-score) ===
+        raw_thick, details['lid_thickness'] = self._eyelid_thickness(
             image_rgb, mp_lm, ldm68_orig, h, w)
+        scores['eyelid_thickness'] = safe_float(1.0 - raw_thick)
 
-        # === METHOD 3: Eyelid Thickness ===
-        scores['eyelid_thickness'], details['lid_thickness'] = self._eyelid_thickness(
-            image_rgb, mp_lm, ldm68_orig, h, w)
-
-        # === METHOD 4: Lid Smoothness ===
+        # === METHOD 3: Lid Smoothness ===
         scores['lid_smoothness'], details['lid_smooth'] = self._lid_smoothness(
             image_rgb, mp_lm, ldm68_orig, h, w)
 
-        # === METHOD 5: Periocular Discontinuity ===
-        scores['periocular_discontinuity'], details['periocular'] = self._periocular_discontinuity(
-            image_rgb, mp_lm, ldm68_orig, h, w)
-
-        # === METHOD 6: Eyelid Edge Sharpness ===
+        # === METHOD 4: Eyelid Edge Sharpness ===
         scores['eyelid_edge_sharpness'], details['lid_edge'] = self._eyelid_edge_sharpness(
             image_rgb, mp_lm, ldm68_orig, h, w)
 
-        # === METHOD 7: Eye Depth (3DDFA Z-depth analysis) ===
-        scores['eye_depth_anomaly'], details['eye_depth'] = self._eye_depth_anomaly(
-            ddffa, mp_lm, h, w)
-
-        # === METHOD 8: Eye Symmetry ===
-        scores['eye_symmetry_anomaly'], details['eye_sym'] = self._eye_symmetry(
+        # === METHOD 5: Eye Symmetry (INVERTED: real>silicone → 1-score) ===
+        raw_sym, details['eye_sym'] = self._eye_symmetry(
             mp_lm, ldm68_orig, h, w)
+        scores['eye_symmetry_anomaly'] = safe_float(1.0 - raw_sym)
 
-        # === METHOD 9: Sclera-Iris Boundary ===
+        # === METHOD 6: Sclera-Iris Boundary ===
         scores['sclera_iris_boundary'], details['sclera_iris'] = self._sclera_iris_boundary(
             image_rgb, mp_lm, h, w)
 
-        # === METHOD 10: Pupil Apparent Size ===
+        # === METHOD 7: Pupil Apparent Size ===
         scores['pupil_apparent_size'], details['pupil_size'] = self._pupil_apparent_size(
             image_rgb, mp_lm, h, w)
 
-        # === METHOD 11: Eye Orbit Area (segmentation) ===
+        # === METHOD 8: Eye Orbit Area (segmentation) ===
         scores['orbit_area_ratio'], details['orbit_area'] = self._orbit_area_ratio(
             seg_vis, mp_lm, ddffa, h, w, trans_params)
 
-        # === METHOD 12: Periocular Texture LBP ===
+        # === METHOD 9: Periocular Texture LBP ===
         scores['periocular_lbp_entropy'], details['peri_lbp'] = self._periocular_lbp(
             image_rgb, mp_lm, ldm68_orig, h, w)
 
-        # === METHOD 13: Subsurface Scattering (R-B ratio on eyelids) ===
-        scores['eyelid_sss'], details['sss'] = self._eyelid_sss(
+        # === METHOD 10: Subsurface Scattering (INVERTED: real>silicone → 1-score) ===
+        raw_sss, details['sss'] = self._eyelid_sss(
             image_rgb, mp_lm, ldm68_orig, h, w)
+        scores['eyelid_sss'] = safe_float(1.0 - raw_sss)
 
-        # === METHOD 14: Iris Visible Area Ratio (ldm134 eyelid + MP iris) ===
+        # === METHOD 11: Iris Visible Area Ratio (ldm134 eyelid + MP iris) ===
         scores['iris_visible_ratio'], details['iris_vis'] = self._iris_visible_ratio(
             mp_lm, ldm134_orig, h, w)
 
-        # === METHOD 15: Iris Center Offset (iris position in eye opening) ===
+        # === METHOD 12: Iris Center Offset (iris position in eye opening) ===
         scores['iris_center_offset'], details['iris_offset'] = self._iris_center_offset(
             mp_lm, ldm134_orig, h, w)
 
-        # === METHOD 16: Sclera Asymmetry (visible white area L vs R) ===
+        # === METHOD 13: Sclera Asymmetry (visible white area L vs R) ===
         scores['sclera_asymmetry'], details['sclera_asym'] = self._sclera_asymmetry(
             image_rgb, mp_lm, h, w)
-
-        # === METHOD 17: Iris Edge vs Lid Curvature ===
-        scores['iris_lid_curvature'], details['iris_lid_curv'] = self._iris_lid_curvature(
-            mp_lm, ldm134_orig, h, w)
 
         return safe_dict(scores), details
 
@@ -549,53 +534,6 @@ class EyeMaskDetector:
 
         return None
 
-    def _iris_aperture_ratio(self, image_rgb, mp_lm, ldm68_orig, h, w):
-        """
-        METHOD 2: Iris-to-aperture ratio.
-        Mask makes iris look bigger relative to visible eye.
-        """
-        iod = self._get_iod(mp_lm, ldm68_orig)
-        details = {}
-        ratios = []
-
-        for side, iris_idx, eye_idx in [
-            ('left', MP_LEFT_IRIS, MP_LEFT_EYE_OUTLINE),
-            ('right', MP_RIGHT_IRIS, MP_RIGHT_EYE_OUTLINE)
-        ]:
-            if mp_lm is None or not mp_lm.shape[0] > max(iris_idx + eye_idx):
-                continue
-
-            # Iris diameter
-            iris_center = mp_lm[iris_idx[0], :2]
-            iris_edges = mp_lm[iris_idx[1:], :2]
-            iris_radii = [np.linalg.norm(e - iris_center) for e in iris_edges]
-            iris_diam = 2 * np.mean(iris_radii)
-
-            # Eye height (aperture)
-            if side == 'left':
-                eye_h = np.linalg.norm(mp_lm[159, :2] - mp_lm[145, :2])
-            else:
-                eye_h = np.linalg.norm(mp_lm[386, :2] - mp_lm[374, :2])
-
-            if eye_h < 1:
-                continue
-
-            ratio = iris_diam / eye_h
-            ratios.append(ratio)
-            details[f'iris_ap_{side}'] = safe_float(ratio)
-            details[f'iris_diam_{side}_px'] = safe_float(iris_diam)
-            details[f'eye_height_{side}_px'] = safe_float(eye_h)
-
-        if not ratios:
-            return 0.0, details
-
-        mean_ratio = np.mean(ratios)
-        details['mean_iris_ap_ratio'] = safe_float(mean_ratio)
-
-        # Normal: 0.5-0.7, Mask: > 0.85
-        score = np.clip((mean_ratio - 0.65) / 0.25, 0, 1)
-        return safe_float(score), details
-
     def _eyelid_thickness(self, image_rgb, mp_lm, ldm68_orig, h, w):
         """
         METHOD 3: Eyelid thickness (double layer).
@@ -685,93 +623,6 @@ class EyeMaskDetector:
         score = np.clip((200 - mean_var) / 150, 0, 1)
         return safe_float(score), details
 
-    def _periocular_discontinuity(self, image_rgb, mp_lm, ldm68_orig, h, w):
-        """
-        METHOD 6: Periocular texture discontinuity.
-        Compare LBP histogram inside orbit vs outside.
-        """
-        gray = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2GRAY)
-        details = {}
-        diffs = []
-
-        for side in ['left', 'right']:
-            if mp_lm is None:
-                continue
-
-            if side == 'left':
-                eye_center = mp_lm[MP_LEFT_EYE_OUTLINE, :2].mean(axis=0).astype(int)
-            else:
-                eye_center = mp_lm[MP_RIGHT_EYE_OUTLINE, :2].mean(axis=0).astype(int)
-
-            iod = self._get_iod(mp_lm, ldm68_orig)
-            r_inner = int(iod * 0.15)
-            r_outer = int(iod * 0.45)
-
-            # Inner ring (close to eye = potential mask edge)
-            inner = self._ring_patch(gray, eye_center, r_inner, r_inner + int(iod * 0.1), h, w)
-            # Outer ring (further from eye = real skin)
-            outer = self._ring_patch(gray, eye_center, r_outer, r_outer + int(iod * 0.1), h, w)
-
-            if inner is not None and outer is not None and inner.size > 16 and outer.size > 16:
-                hist_inner = self._quick_lbp_hist(inner)
-                hist_outer = self._quick_lbp_hist(outer)
-                diff = np.sum((hist_inner - hist_outer) ** 2 / (hist_inner + hist_outer + 1e-6))
-                diffs.append(diff)
-                details[f'peri_disc_{side}'] = safe_float(diff)
-
-        if not diffs:
-            return 0.0, details
-
-        mean_diff = np.mean(diffs)
-        details['mean_peri_discontinuity'] = safe_float(mean_diff)
-
-        # Normal: < 0.5, Mask: > 1.0 (texture jump at mask edge)
-        score = np.clip((mean_diff - 0.5) / 0.8, 0, 1)
-        return safe_float(score), details
-
-    def _ring_patch(self, gray, center, r_inner, r_outer, h, w):
-        """Extract ring-shaped patch."""
-        cx, cy = center
-        size = r_outer * 2 + 1
-        y1 = max(0, cy - r_outer)
-        y2 = min(h, cy + r_outer)
-        x1 = max(0, cx - r_outer)
-        x2 = min(w, cx + r_outer)
-        if y2 <= y1 or x2 <= x1:
-            return None
-
-        patch = gray[y1:y2, x1:x2]
-        # Create ring mask
-        yy, xx = np.mgrid[y1:y2, x1:x2]
-        dist = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2)
-        ring = (dist >= r_inner) & (dist <= r_outer)
-
-        if ring.sum() < 10:
-            return None
-        return patch[ring]
-
-    def _quick_lbp_hist(self, data):
-        """Quick LBP histogram (8 bins)."""
-        if data.ndim == 1:
-            # Already a flat array of pixel values
-            hist, _ = np.histogram(data, bins=8, range=(0, 256))
-        else:
-            # Compute simple LBP
-            h, w = data.shape[:2]
-            if h < 3 or w < 3:
-                return np.ones(8) / 8
-            center = data[1:-1, 1:-1].astype(np.uint8)
-            lbp = np.zeros_like(center)
-            offsets = [(-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1)]
-            for i, (dy, dx) in enumerate(offsets):
-                neighbor = data[1 + dy:h - 1 + dy, 1 + dx:w - 1 + dx]
-                lbp |= ((neighbor >= center).astype(np.uint8) << i)
-            hist, _ = np.histogram(lbp.ravel(), bins=8, range=(0, 256))
-
-        hist = hist.astype(np.float32)
-        hist /= hist.sum() + 1e-6
-        return hist
-
     def _eyelid_edge_sharpness(self, image_rgb, mp_lm, ldm68_orig, h, w):
         """
         METHOD 7: Eyelid edge sharpness.
@@ -809,80 +660,6 @@ class EyeMaskDetector:
         # Normal: 40-70, Mask: > 80
         score = np.clip((mean_grad - 70) / 20, 0, 1)
         return safe_float(score), details
-
-    def _eye_depth_anomaly(self, ddffa, mp_lm, h, w):
-        """
-        METHOD 8: Eye depth from 3DDFA Z coordinates.
-        Mask pushes eyes deeper (several mm behind mask surface).
-        """
-        v3d = ddffa.get('v3d')
-        ldm68 = ddffa.get('ldm68')
-        details = {}
-
-        if v3d is None or ldm68 is None:
-            return 0.0, details
-
-        # v3d shape: (35709, 3) - 3D vertices in camera space
-        # Z = depth (higher = further from camera)
-        # ldm68 are indices into v3d... actually ldm68 here is 2D projected
-
-        # Use face_model ldm68 vertex indices if available
-        # For now: compare Z of eye region vs nose/forehead
-        # We need the vertex indices for landmarks
-
-        # Approximate: use v2d to find vertices near eye positions
-        v2d = ddffa.get('v2d')
-        if v2d is None:
-            return 0.0, details
-
-        # v2d: (35709, 2) in 224x224 space
-        # Find vertices near eye landmarks
-        if ldm68 is not None:
-            # Left eye center in 224 space
-            le_center = ldm68[36:42].mean(axis=0)  # (x, y) in 224 space
-            re_center = ldm68[42:48].mean(axis=0)
-            nose_tip = ldm68[30] if len(ldm68) > 30 else ldm68[27]
-            forehead = ldm68[27] if len(ldm68) > 27 else ldm68[19]
-
-            # Find nearest vertices
-            tree = cKDTree(v2d[:, :2])
-
-            _, le_idx = tree.query(le_center)
-            _, re_idx = tree.query(re_center)
-            _, nose_idx = tree.query(nose_tip[:2])
-            _, fh_idx = tree.query(forehead[:2])
-
-            z_eye_L = v3d[le_idx, 2]
-            z_eye_R = v3d[re_idx, 2]
-            z_nose = v3d[nose_idx, 2]
-            z_forehead = v3d[fh_idx, 2]
-
-            # Depth differences (Z in 3DDFA: smaller = further from camera)
-            depth_eye_nose_L = z_eye_L - z_nose  # positive = eye behind nose
-            depth_eye_nose_R = z_eye_R - z_nose
-            depth_eye_fh_L = z_eye_L - z_forehead
-            depth_eye_fh_R = z_eye_R - z_forehead
-
-            details['z_eye_L'] = safe_float(z_eye_L)
-            details['z_eye_R'] = safe_float(z_eye_R)
-            details['z_nose'] = safe_float(z_nose)
-            details['depth_eye_nose_L'] = safe_float(depth_eye_nose_L)
-            details['depth_eye_nose_R'] = safe_float(depth_eye_nose_R)
-            details['depth_eye_fh_L'] = safe_float(depth_eye_fh_L)
-            details['depth_eye_fh_R'] = safe_float(depth_eye_fh_R)
-
-            # Average depth of eye relative to nose and forehead
-            avg_depth = np.mean([depth_eye_nose_L, depth_eye_nose_R,
-                                 depth_eye_fh_L, depth_eye_fh_R])
-            details['avg_eye_depth_offset'] = safe_float(avg_depth)
-
-        # In 3DDFA: Z ~8.0-8.5, eye is typically slightly behind nose (positive diff)
-        # Normal: eye-nose diff around +0.15 to +0.25
-        # Mask: eye deeper behind mask surface (higher positive diff)
-        score = np.clip((avg_depth - 0.12) / 0.25, 0, 1)
-        return safe_float(score), details
-
-        return 0.0, details
 
     def _eye_symmetry(self, mp_lm, ldm68_orig, h, w):
         """
@@ -1138,7 +915,7 @@ class EyeMaskDetector:
         score = np.clip((mean_rb - 28) / 20, 0, 1)
         return safe_float(score), details
 
-    def _iris_visible_ratio(self, mp_lm, ldm134, h, w):
+    def _iris_visible_ratio(self, mp_lm, ldm134_orig, h, w):
         """
         METHOD 16: Iris visible area ratio.
         Uses ldm134 upper/lower eyelid contours + MediaPipe iris landmarks
@@ -1152,7 +929,7 @@ class EyeMaskDetector:
 
         if mp_lm is None or not (mp_lm.shape[0] > 477):
             return 0.0, details
-        if ldm134 is None or len(ldm134) < 134:
+        if ldm134_orig is None or len(ldm134_orig) < 134:
             return 0.0, details
 
         ratios = []
@@ -1160,9 +937,9 @@ class EyeMaskDetector:
         for side in ['left', 'right']:
             if side == 'left':
                 # ldm134 upper lid: points 0-10 (left eye upper contour)
-                upper_pts = ldm134[0:11, :2]
+                upper_pts = ldm134_orig[0:11, :2]
                 # ldm134 lower lid: points 11-21 (left eye lower contour)
-                lower_pts = ldm134[11:22, :2]
+                lower_pts = ldm134_orig[11:22, :2]
                 # MediaPipe iris center + edge points
                 iris_center_idx = 468
                 iris_edge_idx = [469, 470, 471, 472]
@@ -1170,9 +947,9 @@ class EyeMaskDetector:
                 eye_outline_idx = MP_LEFT_EYE_OUTLINE
             else:
                 # ldm134 upper lid: points 22-32 (right eye upper contour)
-                upper_pts = ldm134[22:33, :2]
+                upper_pts = ldm134_orig[22:33, :2]
                 # ldm134 lower lid: points 33-43 (right eye lower contour)
-                lower_pts = ldm134[33:44, :2]
+                lower_pts = ldm134_orig[33:44, :2]
                 # MediaPipe iris center + edge points
                 iris_center_idx = 473
                 iris_edge_idx = [474, 475, 476, 477]
@@ -1370,70 +1147,6 @@ class EyeMaskDetector:
         score = np.clip((asymmetry - 0.12) / 0.18, 0, 1)
         return safe_float(score), details
 
-    def _iris_lid_curvature(self, mp_lm, ldm134_orig, h, w):
-        """
-        METHOD 17: Iris edge-to-lid curvature matching.
-        Real: eyelid follows iris curvature smoothly (contour match).
-        Mask: lid contour is straighter / doesn't follow iris curve.
-        """
-        details = {}
-        if mp_lm is None or not (mp_lm.shape[0] > 477):
-            return 0.0, details
-        if ldm134_orig is None or len(ldm134_orig) < 44:
-            return 0.0, details
-
-        curvatures = []
-
-        for side in ['left', 'right']:
-            if side == 'left':
-                upper_pts = ldm134_orig[0:11, :2]
-                iris_center_idx = 468
-                iris_edge_idx = [469, 470, 471, 472]
-            else:
-                upper_pts = ldm134_orig[22:33, :2]
-                iris_center_idx = 473
-                iris_edge_idx = [474, 475, 476, 477]
-
-            if max(iris_center_idx, max(iris_edge_idx)) >= len(mp_lm):
-                continue
-
-            iris_c = mp_lm[iris_center_idx, :2]
-            iris_e = mp_lm[iris_edge_idx, :2]
-            iris_r = np.mean([np.linalg.norm(e - iris_c) for e in iris_e])
-            if iris_r < 2:
-                continue
-
-            # Upper lid points sorted by x
-            sorted_pts = upper_pts[np.argsort(upper_pts[:, 0])]
-
-            # For each lid point, compute distance to iris center
-            dists_to_iris = []
-            for pt in sorted_pts:
-                d = np.linalg.norm(pt - iris_c)
-                dists_to_iris.append(d)
-
-            if not dists_to_iris:
-                continue
-
-            # How much does lid distance from iris center vary?
-            # Real: lid follows iris → distances are similar (low variance)
-            # Mask: lid is flatter → distances vary more (high variance)
-            dist_arr = np.array(dists_to_iris)
-            cv_dist = dist_arr.std() / max(dist_arr.mean(), 1)  # coefficient of variation
-            curvatures.append(cv_dist)
-            details[f'lid_iris_cv_{side}'] = safe_float(cv_dist)
-
-        if not curvatures:
-            return 0.0, details
-
-        mean_cv = np.mean(curvatures)
-        details['mean_lid_iris_cv'] = safe_float(mean_cv)
-
-        # Real: low CV (lid follows iris, CV < 0.08)
-        # Mask: high CV (lid is flatter, CV > 0.10)
-        score = np.clip((mean_cv - 0.07) / 0.06, 0, 1)
-        return safe_float(score), details
-
 
 # =============================================================================
 # CROSS-SYSTEM METHODS (3DDFA + MediaPipe combined)
@@ -1460,35 +1173,32 @@ class CrossSystemDetector:
             ldm68_copy[:, 1] = 224 - 1 - ldm68_copy[:, 1]
             ldm68_orig = back_resize_ldms(ldm68_copy, trans_params)
 
-        # === METHOD 16: Landmark Discrepancy ===
-        scores['landmark_discrepancy'], details['lm_disc'] = self._landmark_discrepancy(
+        # === METHOD 16: Landmark Discrepancy (INVERTED: real>silicone → 1-score) ===
+        raw_disc, details['lm_disc'] = self._landmark_discrepancy(
             mp_lm, ldm68_orig, h, w)
+        scores['landmark_discrepancy'] = safe_float(1.0 - raw_disc)
 
-        # === METHOD 17: Specular BRDF ===
-        scores['specular_brdf'], details['specular'] = self._specular_analysis(image_rgb, mp_lm, h, w)
+        # === METHOD 17: Specular BRDF (INVERTED: real>silicone → 1-score) ===
+        raw_spec, details['specular'] = self._specular_analysis(image_rgb, mp_lm, h, w)
+        scores['specular_brdf'] = safe_float(1.0 - raw_spec)
 
-        # === METHOD 18: Eye contour divergence ===
-        scores['eye_contour_divergence'], details['contour'] = self._eye_contour_divergence(
+        # === METHOD 18: Eye contour divergence (INVERTED: real>silicone → 1-score) ===
+        raw_contour, details['contour'] = self._eye_contour_divergence(
             mp_lm, ldm68_orig, h, w)
+        scores['eye_contour_divergence'] = safe_float(1.0 - raw_contour)
 
         # === METHOD 19: Subsurface Light Transport ===
         scores['subsurface_violation'], details['sss_full'] = self._subsurface_analysis(
             image_rgb, mp_lm, h, w)
 
-        # === METHOD 20: Nasolabial fold suppression ===
-        scores['nasolabial_suppression'], details['naso'] = self._nasolabial(
-            image_rgb, mp_lm, h, w)
-
-        # === METHOD 21: Ear texture cliff ===
+        # === METHOD 20: Ear texture cliff ===
         scores['ear_texture_cliff'], details['ear'] = self._ear_cliff(
             image_rgb, mp_lm, h, w)
 
-        # === METHOD 22: Face mesh curvature ===
-        scores['mesh_curvature_anomaly'], details['curvature'] = self._mesh_curvature(ddffa, mp_lm, h, w)
-
-        # === METHOD 23: Skin tone UV mismatch ===
-        scores['skin_tone_mismatch'], details['tone'] = self._skin_tone(
+        # === METHOD 21: Skin tone UV mismatch (INVERTED: real>silicone → 1-score) ===
+        raw_tone, details['tone'] = self._skin_tone(
             image_rgb, ddffa, mp_lm, h, w)
+        scores['skin_tone_mismatch'] = safe_float(1.0 - raw_tone)
 
         return safe_dict(scores), details
 
@@ -1733,41 +1443,6 @@ class CrossSystemDetector:
 
         return safe_float(np.mean(scores_parts)), details
 
-    def _nasolabial(self, image_rgb, mp_lm, h, w):
-        """
-        METHOD 21: Nasolabial fold suppression.
-        """
-        gray = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2GRAY)
-        details = {}
-
-        if mp_lm is None:
-            return 0.0, details
-
-        contrasts = []
-        for fold_idx, cheek_idx in [(165, 117), (394, 345)]:
-            if fold_idx >= len(mp_lm) or cheek_idx >= len(mp_lm):
-                continue
-            fx, fy = int(mp_lm[fold_idx, 0]), int(mp_lm[fold_idx, 1])
-            cx, cy = int(mp_lm[cheek_idx, 0]), int(mp_lm[cheek_idx, 1])
-
-            # Compare brightness at fold vs cheek
-            r = 5
-            fold_patch = gray[max(0, fy - r):fy + r, max(0, fx - r):fx + r]
-            cheek_patch = gray[max(0, cy - r):cy + r, max(0, cx - r):cx + r]
-
-            if fold_patch.size > 0 and cheek_patch.size > 0:
-                contrast = abs(fold_patch.mean() - cheek_patch.mean())
-                contrasts.append(contrast)
-
-        if contrasts:
-            mean_c = np.mean(contrasts)
-            details['nasolabial_contrast'] = safe_float(mean_c)
-            # Normal: > 25 (visible fold shadow), Mask: < 20 (smooth, suppressed fold)
-            score = np.clip((30 - mean_c) / 20, 0, 1)
-            return safe_float(score), details
-
-        return 0.0, details
-
     def _ear_cliff(self, image_rgb, mp_lm, h, w):
         """
         METHOD 22: Ear region texture cliff.
@@ -1802,50 +1477,6 @@ class CrossSystemDetector:
             # Silicone mask: low cliff (100-200) uniform material, no ear detail
             score = np.clip(1.0 - mean_cliff / 500, 0, 1)
             return safe_float(score), details
-
-        return 0.0, details
-
-    def _mesh_curvature(self, ddffa, mp_lm, h, w):
-        """
-        METHOD 24: Dense mesh curvature anomaly.
-        """
-        details = {}
-        v3d = ddffa.get('v3d')
-        tri = ddffa.get('tri')
-
-        if v3d is None or tri is None:
-            return 0.0, details
-
-        # Compute per-vertex curvature (simplified: Laplacian magnitude)
-        n_verts = len(v3d)
-        if n_verts < 100:
-            return 0.0, details
-
-        # Sample subset for speed
-        sample_size = min(5000, n_verts)
-        sample_idx = np.random.choice(n_verts, sample_size, replace=False)
-
-        curvatures = []
-        for v_idx in sample_idx:
-            # Find neighbors
-            tri_mask = (tri == v_idx).any(axis=1)
-            neighbor_tris = tri[tri_mask]
-            neighbors = set(neighbor_tris.ravel()) - {v_idx}
-
-            if len(neighbors) > 0:
-                nb_pts = v3d[list(neighbors)[:8]]  # max 8 neighbors
-                laplacian = nb_pts.mean(axis=0) - v3d[v_idx]
-                curv = np.linalg.norm(laplacian)
-                curvatures.append(curv)
-
-        if curvatures:
-            curv_arr = np.array(curvatures)
-            details['mesh_curvature_mean'] = safe_float(curv_arr.mean())
-            details['mesh_curvature_std'] = safe_float(curv_arr.std())
-
-            # Low std = smooth surface = mask, High std = complex geometry = real skin
-            std_score = np.clip(1.0 - curv_arr.std() / 0.003, 0, 1)
-            return safe_float(std_score), details
 
         return 0.0, details
 
@@ -1915,6 +1546,7 @@ def process_image(image_path, ddffa_analyzer, mp_analyzer, eye_detector, cross_d
     }
 
     # 3DDFA-V3
+    ddffa = None
     try:
         ddffa = ddffa_analyzer.analyze(im_pil)
         result['3ddfa_success'] = True
@@ -1922,7 +1554,7 @@ def process_image(image_path, ddffa_analyzer, mp_analyzer, eye_detector, cross_d
         print(f"    3DDFA failed: {e}")
         result['3ddfa_success'] = False
         result['error'] = str(e)
-        return result
+        ddffa = {}
 
     # MediaPipe
     try:
@@ -2000,8 +1632,10 @@ def process_image(image_path, ddffa_analyzer, mp_analyzer, eye_detector, cross_d
     all_scores.update(result.get('cross_scores', {}))
 
     if all_scores:
-        result['combined_mean'] = safe_float(np.mean(list(all_scores.values())))
-        result['combined_max'] = safe_float(max(all_scores.values()))
+        all_vals = list(all_scores.values())
+        result['combined_mean'] = safe_float(np.mean(all_vals))
+        result['combined_median'] = safe_float(np.median(all_vals))
+        result['combined_max'] = safe_float(max(all_vals))
         result['eye_mean'] = safe_float(np.mean(list(result.get('eye_scores', {}).values()))) if result.get('eye_scores') else 0.0
         result['cross_mean'] = safe_float(np.mean(list(result.get('cross_scores', {}).values()))) if result.get('cross_scores') else 0.0
         result['top5_methods'] = sorted(all_scores.items(), key=lambda x: -x[1])[:5]

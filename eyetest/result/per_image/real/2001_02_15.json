@@ -1,0 +1,76 @@
+{
+  "filename": "2001_02_15.jpg",
+  "image_size": [
+    600,
+    600
+  ],
+  "3ddfa_success": true,
+  "mediapipe_success": true,
+  "iris_available": true,
+  "yaw": -2.812743,
+  "pitch": -17.639774,
+  "roll": -2.926657,
+  "ракурс": "frontal",
+  "ракурс_сторона": "C",
+  "видимый_глаз": "both",
+  "trans_params": [
+    600.0,
+    600.0,
+    0.488539,
+    292.165769,
+    233.07378
+  ],
+  "eye_scores": {
+    "aperture_shrinkage": 0.781862,
+    "eyelid_thickness": 0.35,
+    "lid_smoothness": 0.181333,
+    "eyelid_edge_sharpness": 0.721042,
+    "eye_symmetry_anomaly": 0.909767,
+    "sclera_iris_boundary": 0.197917,
+    "pupil_apparent_size": 0.148708,
+    "orbit_area_ratio": 0.0,
+    "periocular_lbp_entropy": 0.0,
+    "eyelid_sss": 0.0,
+    "iris_visible_ratio": 0.135359,
+    "iris_center_offset": 0.0,
+    "sclera_asymmetry": 1.0
+  },
+  "cross_scores": {
+    "landmark_discrepancy": 0.848092,
+    "specular_brdf": 0.435848,
+    "eye_contour_divergence": 1.0,
+    "subsurface_violation": 0.309306,
+    "ear_texture_cliff": 0.352159,
+    "skin_tone_mismatch": 0.624657
+  },
+  "combined_mean": 0.420845,
+  "combined_median": 0.35,
+  "combined_max": 1.0,
+  "eye_mean": 0.340461,
+  "cross_mean": 0.59501,
+  "top5_methods": [
+    [
+      "sclera_asymmetry",
+      1.0
+    ],
+    [
+      "eye_contour_divergence",
+      1.0
+    ],
+    [
+      "eye_symmetry_anomaly",
+      0.909767
+    ],
+    [
+      "landmark_discrepancy",
+      0.848092
+    ],
+    [
+      "aperture_shrinkage",
+      0.781862
+    ]
+  ],
+  "_complete": true,
+  "_filename": "2001_02_15.jpg",
+  "_label": "real"
+}

@@ -1,0 +1,25 @@
+{
+  "filename": "2001_01_16.jpg",
+  "image_size": [
+    600,
+    600
+  ],
+  "3ddfa_success": true,
+  "mediapipe_success": true,
+  "iris_available": true,
+  "yaw": -67.758812,
+  "pitch": -29.247322,
+  "roll": 30.332973,
+  "ракурс": "profile_skipped",
+  "ракурс_сторона": null,
+  "видимый_глаз": "both",
+  "eye_scores": {},
+  "cross_scores": {},
+  "combined_mean": 0.0,
+  "combined_max": 0.0,
+  "eye_mean": 0.0,
+  "cross_mean": 0.0,
+  "_complete": true,
+  "_filename": "2001_01_16.jpg",
+  "_label": "real"
+}
