@@ -1,0 +1,54 @@
+{
+  "age_years": 48.13,
+  "dataset": "main",
+  "date": "2000-11-24",
+  "expression_flags": {
+    "jaw_excluded": false,
+    "neutralized": false,
+    "smile_excluded": false
+  },
+  "face_bbox": [
+    49,
+    2,
+    167,
+    186
+  ],
+  "face_mask_path": "/Volumes/SDCARD/data2/output_real2/2000_11_24/face_mask.png",
+  "image_size": [
+    600,
+    600
+  ],
+  "photo_id": "2000_11_24",
+  "pose": {
+    "age_years": 48.13,
+    "bucket": "left_profile",
+    "confidence": 0.8,
+    "date": "2000-11-24",
+    "photo_id": "2000_11_24",
+    "pitch": 12.154156684875488,
+    "pose_source": "3ddfa_v3",
+    "roll": -2.871640205383301,
+    "yaw": -86.01506042480469
+  },
+  "quality": {
+    "blur_value": 221.15608033517745,
+    "face_min_dim": 0,
+    "is_jpeg_blocky": true,
+    "is_motion_blurred": false,
+    "is_over_smoothed": false,
+    "jpeg_blockiness": 1.7907888889312744,
+    "noise_level": 2.271733283996582,
+    "overall_quality": 0.4353372566575106,
+    "ppIOD": 0.0,
+    "q_laplacian_var": 0.0,
+    "q_tenengrad": 0.0,
+    "q_valid_patches": 0,
+    "sharpness_score": 0.22115608033517745
+  },
+  "readiness": {
+    "geometry": "available",
+    "texture": "available"
+  },
+  "reconstruction_path": "/Volumes/SDCARD/data2/output_real2/2000_11_24/reconstruction.pkl",
+  "source_path": "/Users/victorkhudyakov/deeputin/test_photos/test dataset (real skin and silicone skin)/real2/2000_11_24.jpg"
+}

@@ -1,0 +1,54 @@
+{
+  "age_years": 70.44,
+  "dataset": "main",
+  "date": "2023-03-18",
+  "expression_flags": {
+    "jaw_excluded": false,
+    "neutralized": false,
+    "smile_excluded": false
+  },
+  "face_bbox": [
+    39,
+    12,
+    193,
+    174
+  ],
+  "face_mask_path": "/Volumes/SDCARD/data2/output_silicone/2023_03_18/face_mask.png",
+  "image_size": [
+    800,
+    800
+  ],
+  "photo_id": "2023_03_18",
+  "pose": {
+    "age_years": 70.44,
+    "bucket": "left_threequarter_light",
+    "confidence": 0.8,
+    "date": "2023-03-18",
+    "photo_id": "2023_03_18",
+    "pitch": -14.810440063476562,
+    "pose_source": "3ddfa_v3",
+    "roll": -11.784307479858398,
+    "yaw": -32.025917053222656
+  },
+  "quality": {
+    "blur_value": 46.93575221179442,
+    "face_min_dim": 0,
+    "is_jpeg_blocky": true,
+    "is_motion_blurred": false,
+    "is_over_smoothed": false,
+    "jpeg_blockiness": 1.6801825046539307,
+    "noise_level": 0.664437472820282,
+    "overall_quality": 0.3271598482097965,
+    "ppIOD": 0.0,
+    "q_laplacian_var": 0.0,
+    "q_tenengrad": 0.0,
+    "q_valid_patches": 0,
+    "sharpness_score": 0.04693575221179442
+  },
+  "readiness": {
+    "geometry": "available",
+    "texture": "available"
+  },
+  "reconstruction_path": "/Volumes/SDCARD/data2/output_silicone/2023_03_18/reconstruction.pkl",
+  "source_path": "/Users/victorkhudyakov/deeputin/test_photos/test dataset (real skin and silicone skin)/silicone/2023_03_18.jpg"
+}

@@ -1,6 +1,6 @@
 {
   "autocorr_decay_len": 16.0,
-  "bimodality_ashman_D": 4.669630266215619,
+  "bimodality_ashman_D": 4.66963026621562,
   "dwt_haar_HH_LL_ratio": 0.0,
   "dwt_haar_HH_LL_ratio_weight": 0.2,
   "edge_tortuosity_mean": 1.0002607722601546,
