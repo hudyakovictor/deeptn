@@ -172,13 +172,23 @@ class CalibrationEngine:
             geo = load_json(photo_dir / "geometry_metrics.json")
             tex = load_json(photo_dir / "texture_metrics.json")
             if info and isinstance(geo, dict):
+                tex = tex or {}
+                silicone_prob = float(tex.get("texture_silicone_prob", 0.5)) if isinstance(tex, dict) else 0.5
+                if silicone_prob >= 0.65:
+                    texture_skin_hint = "silicone"
+                elif silicone_prob <= 0.35:
+                    texture_skin_hint = "real"
+                else:
+                    texture_skin_hint = "unknown"
                 records.append(Stage2Record(
                     photo_id=info.get("photo_id", photo_dir.name),
                     dataset=info.get("dataset", "main"),
                     bucket=info.get("pose", {}).get("bucket", "unknown"),
                     quality=info.get("quality", {}),
                     geometry=geo,
-                    texture=tex or {},
+                    texture=tex,
+                    texture_skin_hint=texture_skin_hint,
+                    texture_skin_confidence=float(abs(silicone_prob - 0.5) * 2.0),
                 ))
         return records
 
@@ -237,6 +247,12 @@ class CalibrationEngine:
         return float(np.mean(diffs) if diffs else 0.0)
 
     def _texture_suspicion(self, record: Stage2Record, reference: CalibrationReference, stage1: Stage1Record | None = None) -> float:
+        if "texture_silicone_prob" in record.texture:
+            try:
+                return float(np.clip(float(record.texture["texture_silicone_prob"]), 0.0, 1.0))
+            except Exception:
+                pass
+
         texture_values = []
         noise = reference.pairwise_noise.get(record.bucket.value, {})
         age_profiles = reference.age_profiles.get(record.bucket.value, {})

@@ -166,7 +166,6 @@ class MetricsEngine:
         q_valid_patches = texture.pop("q_valid_patches", 0)
 
         geometry_hint = self.geometry_resolver.resolve(geometry)
-        texture_hint = self.texture_classifier.classify(texture, info.quality)
 
         physical_features = {}
         try:
@@ -177,11 +176,9 @@ class MetricsEngine:
                 landmarks = np.array(landmarks_68, dtype=np.float32)
                 if landmarks.ndim == 2 and landmarks.shape[1] >= 2:
                     image_rgb = rgba[:, :, :3]
-                    # FIX: seg_mask threshold >10 not >128 (preserves skin edges)
                     seg_mask = rgba[:, :, 3] > 10 if rgba.shape[2] == 4 else np.ones(rgba.shape[:2], dtype=bool)
                     overall_q = float(info.quality.overall_quality) if info.quality else 1.0
                     pf = self.physical_extractor.extract(image_rgb, landmarks, seg_mask, overall_q)
-                    # Tier 3 physical auxiliary metrics
                     physical_features = {
                         "seam_score": pf.seam_score,
                         "specular_sharpness": pf.specular_sharpness,
@@ -192,8 +189,19 @@ class MetricsEngine:
         except Exception:
             pass
 
-        # Merge Tier 3 physical aux into texture
         texture.update(physical_features)
+
+        texture_hint = self.texture_classifier.classify(texture, info.quality)
+
+        posterior = texture_hint.get("posterior", {}) if isinstance(texture_hint, dict) else {}
+        try:
+            texture["texture_silicone_prob"] = float(posterior.get("silicone", 0.5))
+            texture["texture_real_prob"] = float(posterior.get("real", 0.5))
+            texture["texture_skin_confidence"] = float(texture_hint.get("texture_skin_confidence", 0.0))
+        except Exception:
+            texture["texture_silicone_prob"] = 0.5
+            texture["texture_real_prob"] = 0.5
+            texture["texture_skin_confidence"] = 0.0
 
         texture_weights_json = texture.pop("texture_feature_weights_json", None)
         metric_notes = {
@@ -204,7 +212,14 @@ class MetricsEngine:
             "geometry_catalog_size": str(len(self.geometry_catalog)),
             "texture_catalog_size": str(len(self.texture_catalog)),
             "quality_sensitive_excluded": "false",
+            "texture_classifier_model_loaded": str(texture_hint.get("model_loaded", False)).lower(),
+            "texture_classifier_heuristic_fallback": str(texture_hint.get("heuristic_fallback", False)).lower(),
+            "texture_silicone_prob": str(texture.get("texture_silicone_prob", 0.5)),
+            "texture_real_prob": str(texture.get("texture_real_prob", 0.5)),
+            "texture_quality_reason": str(texture_hint.get("quality_reason", "ok")),
         }
+        if texture_hint.get("heuristic_top_rules"):
+            metric_notes["texture_heuristic_top_rules"] = str(texture_hint.get("heuristic_top_rules"))
         if texture_weights_json:
             metric_notes["texture_feature_weights_json"] = texture_weights_json
         for k, v in physical_features.items():

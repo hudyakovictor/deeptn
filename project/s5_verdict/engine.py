@@ -195,9 +195,18 @@ class VerdictEngine:
         texture_unreliable = bool(record.quality_summary.get("texture_unreliable", False))
         identity_hint = stage3.identity_hint if stage3 else "PUT"
         skin_hint = stage3.skin_hint if stage3 else "real"
+
+        texture_silicone_prob = float(record.texture.get("texture_silicone_prob", 0.5)) if record.texture else 0.5
+        if stage3:
+            pass
+        else:
+            skin_hint = "silicone" if texture_silicone_prob >= 0.65 else ("real" if texture_silicone_prob <= 0.35 else "unknown")
+
         chronology_score = float(chronology_point.chronology_score if chronology_point else self._chronology_score(record.photo_id, stage2_records, stage1_records))
         identity_boost = 0.12 if identity_hint == "PUT" else 0.0
-        silicone_boost = 0.2 if skin_hint == "silicone" else 0.0
+        silicone_boost = max(0.0, (texture_silicone_prob - 0.5) * 0.4)
+        if skin_hint == "silicone":
+            silicone_boost = max(silicone_boost, 0.2)
         
         # --- Новые модули: биологические ограничения ---
         bio_flags = self._check_biological_constraints(record, stage1, stage2_records, stage1_records)
@@ -306,6 +315,7 @@ class VerdictEngine:
             f"phys_seam={phys.get('seam_score', 0.0):.3f}",
             f"phys_spectral={phys.get('spectral_slope', 0.0):.3f}",
             f"phys_physical_boost={silicone_physical_boost:.3f}",
+            f"texture_silicone_prob={texture_silicone_prob:.3f}",
         ]
         evidence = {
             "geometry": avg_geom,
@@ -327,6 +337,7 @@ class VerdictEngine:
             "baseline_return_flags": float(len(photo_baseline_flags)),
             "alpha_cluster_anomaly": float(photo_alpha_anomaly),
             "texture_unreliable": float(texture_unreliable),
+            "texture_silicone_prob": texture_silicone_prob,
             "phys_sss_index": phys.get("sss_index", 0.0),
             "phys_specular_sharpness": phys.get("specular_sharpness", 0.0),
             "phys_seam_score": phys.get("seam_score", 0.0),
