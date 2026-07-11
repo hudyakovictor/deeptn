@@ -52,10 +52,10 @@ QUALITY_FEATURES = [
 
 # Quality gate thresholds (калибровано по p10 real аудитора #3)
 QUALITY_GATE_THRESHOLDS = {
-    "overall_quality_min": 0.15,      # было 0.28 — пускаем больше фото с низким качеством
-    "sharpness_score_min": 10.0,      # было 25.0 — старые фото 1998-1999 имеют low sharpness
-    "noise_level_max": 15.0,          # было 8.0 — сканы шумные, не блокируем
-    "jpeg_blockiness_max": 4.0,       # было 2.0 — допускаем сильную JPEG-артефакцию
+    "overall_quality_min": 0.28,      # было 0.35/0.4
+    "sharpness_score_min": 25.0,      # было 50/100
+    "noise_level_max": 8.0,           # было 25/30
+    "jpeg_blockiness_max": 2.0,       # было 1.5/1.8
 }
 
 # Adaptive threshold: thresh = 0.50 + 0.30*max(0, 0.60-overall)
@@ -131,9 +131,9 @@ class TextureSkinClassifierV2:
         hint = "silicone" if pred == 1 else "real"
         confidence = max(prob_real, prob_silicone)
 
-        # Adaptive threshold: 0.50 + 0.15*max(0, 0.40-overall) — мягче
+        # Adaptive threshold: 0.50 + 0.30*max(0, 0.60-overall)
         overall_q = q.get("overall_quality", 1.0) if quality else 1.0
-        adaptive_thresh = 0.50 + 0.15 * max(0.0, 0.40 - overall_q)
+        adaptive_thresh = 0.50 + 0.30 * max(0.0, 0.60 - overall_q)
         if confidence < adaptive_thresh:
             hint = "unknown"
 

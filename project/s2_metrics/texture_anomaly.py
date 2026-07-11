@@ -145,10 +145,10 @@ class CohortTextureAnomalyDetectorV2:
         # Robust z-score от median, 1.4826*MAD
         robust_z = np.abs(x - baseline.median) / (baseline.mad * 1.4826)
 
-        # Quality-adjusted threshold: 1.8 + (1-quality)*0.5
-        # High quality (0.9): threshold = 1.85
-        # Low quality (0.2): threshold = 2.15 — было 2.5/3.3, теперь мягче
-        threshold = 1.8 + (1.0 - quality) * 0.5
+        # Quality-adjusted threshold: 2.5 + (1-quality)*1.0
+        # High quality (0.9): threshold = 2.5
+        # Low quality (0.2): threshold = 3.3
+        threshold = 2.5 + (1.0 - quality) * 1.0
 
         max_z = float(robust_z.max())
         mean_z = float(robust_z.mean())
@@ -192,7 +192,7 @@ class CohortTextureAnomalyDetectorV2:
         return np.array(x, dtype=float)
 
     def _interpret(self, score: float, quality: float, flags: Dict) -> str:
-        if quality < 0.15:
+        if quality < 0.28:
             return "low_quality_cannot_assess"
         if score < 0.3:
             return "texture_consistent_with_cohort"

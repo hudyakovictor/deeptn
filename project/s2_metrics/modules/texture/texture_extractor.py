@@ -30,10 +30,10 @@ from scipy.stats import skew, entropy as scipy_entropy
 
 # Константы качества V2 (калибровано по p10 real аудитора #3)
 QUALITY_THRESHOLDS_V2 = {
-    "noise_level_high": 15.0,     # было 8.0 — сканы шумные, не блокируем
-    "sharpness_low": 10.0,        # было 25.0 — старые фото 1998-1999
-    "jpeg_blockiness_high": 4.0,  # было 2.0 — допускаем JPEG-артефакцию
-    "overall_quality_low": 0.15,  # было 0.28 — пускаем больше фото
+    "noise_level_high": 8.0,      # было 25.0, p90 real 2.48 max 5.77
+    "sharpness_low": 25.0,        # было 50.0, p10 real 72, min 28
+    "jpeg_blockiness_high": 2.0,  # было 1.5
+    "overall_quality_low": 0.28,  # было 0.4, mean 0.32 -> 0.63 после fix
 }
 
 # Tier 1: 12 quality-robust core metrics
