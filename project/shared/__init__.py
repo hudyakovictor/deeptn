@@ -1,6 +1,18 @@
 """Общие утилиты и схемы DEEPUTIN."""
 
-from .logging import setup_logger
+from .logging import setup_logger, setup_file_logging, DeepTNLogger, SUCCESS, ATTENTION
+from .progress import ProgressTracker, PipelineProgress, create_progress
+from .validation import (
+    validate_texture_metrics,
+    validate_quality_metrics,
+    validate_info_json,
+    validate_geometry_metrics,
+    validate_all,
+    clean_texture_metrics,
+    clean_info_json,
+    clean_geometry_metrics,
+    ValidationIssue,
+)
 from .schemas import (
     CalibrationReference,
     ForensicVerdict,
@@ -14,16 +26,32 @@ from .schemas import (
     ReportBundle,
     Stage1Record,
     Stage2Record,
+    Stage2IdentityRecord,
     Stage3Record,
     Stage4Record,
     Stage5Record,
-    Stage6Record,
     Hypothesis,
     VerdictLabel,
 )
 
 __all__ = [
     "setup_logger",
+    "setup_file_logging",
+    "DeepTNLogger",
+    "SUCCESS",
+    "ATTENTION",
+    "ProgressTracker",
+    "PipelineProgress",
+    "create_progress",
+    "validate_texture_metrics",
+    "validate_quality_metrics",
+    "validate_info_json",
+    "validate_geometry_metrics",
+    "validate_all",
+    "clean_texture_metrics",
+    "clean_info_json",
+    "clean_geometry_metrics",
+    "ValidationIssue",
     "CalibrationReference",
     "ForensicVerdict",
     "GeometryMetric",
@@ -36,10 +64,10 @@ __all__ = [
     "ReportBundle",
     "Stage1Record",
     "Stage2Record",
+    "Stage2IdentityRecord",
     "Stage3Record",
     "Stage4Record",
     "Stage5Record",
-    "Stage6Record",
     "Hypothesis",
     "VerdictLabel",
 ]

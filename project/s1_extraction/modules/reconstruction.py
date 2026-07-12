@@ -311,10 +311,13 @@ class ReconstructionAdapter:
 
         except Exception as e:
             # Clear CUDA and MPS cache immediately on failure!
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-                torch.mps.empty_cache()
+            try:
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+                    torch.backends.mps.empty_cache()
+            except Exception:
+                pass
             gc.collect()
             raise e
 

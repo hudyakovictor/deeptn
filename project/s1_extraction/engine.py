@@ -1,16 +1,18 @@
 from __future__ import annotations
 
+import math
 import pickle
 import shutil
 import sys
-from dataclasses import asdict
 from pathlib import Path
 
 import cv2
 import numpy as np
 
 from ..shared.logging import setup_logger
-from ..shared.schemas import PipelineDataset, PoseEstimate, QualityMetrics, Stage1Record, PoseBucket
+from ..shared.progress import create_progress
+from ..shared.validation import validate_info_json, validate_quality_metrics
+from ..shared.schemas import PipelineDataset, PoseEstimate, QualityMetrics, Stage1Record, PoseBucket, Stage2Record
 from ..shared.utils import (
     clamp_bbox,
     create_face_mask_rgba,
@@ -31,7 +33,7 @@ from ..shared.utils import (
 )
 from .modules.reconstruction import ReconstructionAdapter, resolve_reconstruction
 
-logger = setup_logger("deeputin.s1")
+logger = setup_logger("s1_extraction")
 
 FACE_CROP_WIDTH = 424
 FACE_CROP_HEIGHT = 500
@@ -45,7 +47,6 @@ MESH_MTL_FILENAME = "mesh.mtl"
 
 
 def _resize_letterbox(bgr: np.ndarray, tw: int, th: int) -> np.ndarray:
-    """Вписать в tw×th без искажения пропорций (чёрные поля по краям)."""
     h, w = bgr.shape[:2]
     if h <= 0 or w <= 0:
         return np.zeros((th, tw, 3), dtype=np.uint8)
@@ -75,6 +76,235 @@ def _resize_letterbox_gray(gray: np.ndarray, tw: int, th: int) -> np.ndarray:
     return canvas
 
 
+class InlineMetricsExtractor:
+    """
+    Извлекает геометрические и текстурные метрики сразу после реконструкции.
+    Используется внутри ExtractionEngine._process_one.
+    """
+
+    def __init__(self, output_dir: Path, dataset: PipelineDataset, config: dict | None = None):
+        self.output_dir = output_dir
+        self.dataset = dataset
+        self.config = config or {}
+
+        data_root = Path(sys.modules['deeputin.shared.utils'].__file__).parent.parent.parent / "data"
+        # Try env var first
+        import os
+        env_root = Path(os.environ.get("DPTN_DATA_ROOT", ""))
+        if env_root.exists():
+            data_root = env_root
+
+        geometry_table = self.config.get(
+            "geometry_evidence_table",
+            data_root / "imgtest" / "metrics_test" / "METRIC_EVIDENCE_TABLE.csv",
+        )
+        texture_leaderboard = self.config.get(
+            "texture_leaderboard",
+            data_root / "imgtest" / "unified_test" / "clean_feature_leaderboard.csv",
+        )
+
+        # Fallback to relative paths
+        if not geometry_table.exists():
+            geometry_table = Path(__file__).resolve().parents[2] / "data" / "imgtest" / "metrics_test" / "METRIC_EVIDENCE_TABLE.csv"
+        if not texture_leaderboard.exists():
+            texture_leaderboard = Path(__file__).resolve().parents[2] / "data" / "imgtest" / "unified_test" / "clean_feature_leaderboard.csv"
+
+        # Lazy imports to avoid circular deps
+        from .metrics.modules.geometry_extractor import GeometryExtractor
+        from .metrics.modules.texture.texture_extractor import TextureExtractor
+        from .metrics.modules.geometry.resolver import GeometryIdentityResolver
+        from .metrics.modules.texture.classifier_v5 import TextureSkinClassifierV5 as TextureSkinClassifier
+        from .metrics.modules.geometry.catalog import load_geometry_metric_catalog
+        from .metrics.modules.texture.catalog import load_texture_metric_catalog
+        from .metrics.texture_anomaly import CohortTextureAnomalyDetectorV2
+        from .metrics.physical_features import PhysicalTextureExtractor
+
+        self.geometry_resolver = GeometryIdentityResolver(geometry_table)
+        self.texture_classifier = TextureSkinClassifier(texture_leaderboard)
+        self.geometry_catalog = load_geometry_metric_catalog()
+        self.texture_catalog = load_texture_metric_catalog(texture_leaderboard)
+        self.texture_extractor = TextureExtractor()
+        self.geometry_extractor = GeometryExtractor()
+        self.cohort_detector = CohortTextureAnomalyDetectorV2()
+        self.physical_extractor = PhysicalTextureExtractor()
+
+        self._cohort_groups: dict[str, list[dict]] = {}
+
+    def extract(self, record: Stage1Record, reconstruction: dict, rgba: np.ndarray) -> Stage2Record:
+        """Extract metrics for a single photo."""
+        photo_id = record.photo_id
+        photo_dir = Path(record.face_mask_path).parent
+
+        # ── Geometry metrics ──
+        try:
+            geometry = self.geometry_extractor.extract(reconstruction)
+        except Exception as exc:
+            logger.warning(f"[{photo_id}] Geometry extraction failed: {exc}")
+            geometry = {}
+
+        # ── Texture metrics ──
+        class TextureCtx:
+            image_rgb = rgba[:, :, :3]
+            face_bbox = record.face_bbox
+            face_mask_path = photo_dir / "face_mask.png"
+            pp_iod = record.pose.iod if hasattr(record.pose, 'iod') else None
+            face_min_dim = min(record.face_bbox[2], record.face_bbox[3]) if record.face_bbox else None
+
+        texture_ctx = TextureCtx()
+        texture = self.texture_extractor.extract(texture_ctx, exclude_sensitive=False)
+
+        # Pop non-float fields
+        texture_assessability = texture.pop("texture_assessability", "eligible")
+        q_valid_patches = texture.pop("q_valid_patches", 0)
+
+        # ── Geometry identity hint ──
+        geometry_hint = self.geometry_resolver.resolve(geometry)
+
+        # ── Physical features ──
+        physical_features = {}
+        try:
+            landmarks_68 = reconstruction.get("landmarks_68")
+            if not landmarks_68 or len(landmarks_68) == 0:
+                landmarks_68 = reconstruction.get("landmarks_106")
+            if landmarks_68 is not None and len(landmarks_68) > 0 and rgba is not None:
+                landmarks = np.array(landmarks_68, dtype=np.float32)
+                if landmarks.ndim == 2 and landmarks.shape[1] >= 2:
+                    image_rgb = rgba[:, :, :3]
+                    seg_mask = rgba[:, :, 3] > 10 if rgba.shape[2] == 4 else np.ones(rgba.shape[:2], dtype=bool)
+                    overall_q = float(record.quality.overall_quality) if record.quality else 1.0
+                    pf = self.physical_extractor.extract(image_rgb, landmarks, seg_mask, overall_q)
+                    physical_features = {
+                        "seam_score": pf.seam_score,
+                        "specular_sharpness": pf.specular_sharpness,
+                        "specular_dispersion": pf.specular_dispersion,
+                        "sss_index": pf.sss_index,
+                        "melanin_hemo_slope": pf.melanin_hemo_slope,
+                    }
+                    for k, v in physical_features.items():
+                        if isinstance(v, float) and not math.isfinite(v):
+                            logger.attention(f"[{photo_id}] physical_{k} = {v} (NaN/Inf)")
+                            physical_features[k] = 0.0
+        except Exception as exc:
+            logger.debug(f"[{photo_id}] Physical features failed: {exc}")
+
+        texture.update(physical_features)
+
+        # ── Texture classification ──
+        texture_hint = self.texture_classifier.classify(texture, record.quality)
+
+        posterior = texture_hint.get("posterior", {}) if isinstance(texture_hint, dict) else {}
+        try:
+            texture["texture_silicone_prob"] = float(posterior.get("silicone", 0.5))
+            texture["texture_real_prob"] = float(posterior.get("real", 0.5))
+            texture["texture_skin_confidence"] = float(texture_hint.get("texture_skin_confidence", 0.0))
+        except Exception:
+            texture["texture_silicone_prob"] = 0.5
+            texture["texture_real_prob"] = 0.5
+            texture["texture_skin_confidence"] = 0.0
+
+        # ── Metric notes ──
+        texture_weights_json = texture.pop("texture_feature_weights_json", None)
+        metric_notes = {
+            "geometry_space": "3ddfa_v3_canonical",
+            "texture_source": "face_mask.png (native)",
+            "geometry_identity_hint": geometry_hint.get("identity_hint", "UNCERTAIN"),
+            "texture_skin_hint": texture_hint.get("texture_skin_hint", "unknown"),
+            "geometry_catalog_size": str(len(self.geometry_catalog)),
+            "texture_catalog_size": str(len(self.texture_catalog)),
+            "texture_classifier_model_loaded": str(texture_hint.get("model_loaded", False)).lower(),
+            "texture_classifier_heuristic_fallback": str(texture_hint.get("heuristic_fallback", False)).lower(),
+            "texture_silicone_prob": str(texture.get("texture_silicone_prob", 0.5)),
+            "texture_real_prob": str(texture.get("texture_real_prob", 0.5)),
+            "texture_quality_reason": str(texture_hint.get("quality_reason", "ok")),
+        }
+        if texture_hint.get("heuristic_top_rules"):
+            metric_notes["texture_heuristic_top_rules"] = str(texture_hint.get("heuristic_top_rules"))
+        if texture_weights_json:
+            metric_notes["texture_feature_weights_json"] = texture_weights_json
+        for k, v in physical_features.items():
+            metric_notes[f"physical_{k}"] = str(v)
+
+        # ── Cohort grouping for anomaly detection ──
+        year = record.date.year if record.date else 2000
+        quality = float(record.quality.overall_quality) if record.quality else 0.5
+        cohort_key = self.cohort_detector.get_cohort_key(year, quality)
+        metric_notes["cohort_key"] = cohort_key
+        if cohort_key not in self._cohort_groups:
+            self._cohort_groups[cohort_key] = []
+        self._cohort_groups[cohort_key].append(texture.copy())
+
+        # ── Build Stage2Record ──
+        selected_keys = sorted(
+            set(geometry) | set(texture)
+            | set(geometry_hint.get("selected_metric_keys", []))
+            | set(texture_hint.get("used_metrics", []))
+        )
+        stage2 = Stage2Record(
+            photo_id=record.photo_id,
+            dataset=record.dataset,
+            bucket=record.pose.bucket,
+            quality=record.quality,
+            geometry=geometry,
+            texture=texture,
+            selected_metric_keys=selected_keys,
+            metric_notes=metric_notes,
+            geometry_identity_hint=str(geometry_hint.get("identity_hint", "UNCERTAIN")),
+            geometry_identity_confidence=float(geometry_hint.get("identity_confidence", 0.0)),
+            texture_skin_hint=str(texture_hint.get("texture_skin_hint", "unknown")),
+            texture_skin_confidence=float(texture_hint.get("texture_skin_confidence", 0.0)),
+            texture_assessability=texture_assessability,
+            quality_summary={
+                "overall_quality": float(record.quality.overall_quality),
+                "blur_value": float(record.quality.blur_value),
+                "noise_level": float(record.quality.noise_level),
+                "jpeg_blockiness": float(record.quality.jpeg_blockiness),
+                "sharpness_score": float(record.quality.sharpness_score),
+                "quality_sensitive_excluded": False,
+            },
+        )
+
+        # ── Save CLEAN JSON output ──
+        from ..shared.validation import clean_texture_metrics, clean_geometry_metrics
+        clean_tex = clean_texture_metrics(stage2.texture)
+        clean_geo = clean_geometry_metrics(stage2.geometry)
+
+        save_json(clean_geo, photo_dir / "geometry_metrics.json")
+        save_json(clean_tex, photo_dir / "texture_metrics.json")
+
+        return stage2
+
+    def fit_cohorts(self):
+        """Fit cohort anomaly models after all photos processed."""
+        logger.info("Fitting cohort anomaly models...")
+        for cohort_key, cohort_textures in self._cohort_groups.items():
+            if len(cohort_textures) >= 3:
+                try:
+                    self.cohort_detector.fit_cohort(cohort_textures, cohort_key)
+                    logger.debug(f"Cohort '{cohort_key}': fitted on {len(cohort_textures)} samples")
+                except Exception as exc:
+                    logger.warning(f"Cohort '{cohort_key}' fit failed: {exc}")
+
+    def score_anomalies(self, stage2_records: list[Stage2Record]) -> list[Stage2Record]:
+        """Score texture anomalies using fitted cohorts."""
+        for record in stage2_records:
+            cohort_key = record.metric_notes.get("cohort_key")
+            quality = float(record.quality.overall_quality) if record.quality else 0.5
+            if cohort_key is None:
+                year = 2000  # fallback
+                cohort_key = self.cohort_detector.get_cohort_key(year, quality)
+            try:
+                anomaly_result = self.cohort_detector.score(record.texture, cohort_key, quality)
+                record.metric_notes["texture_anomaly_score"] = str(anomaly_result.anomaly_score)
+                record.metric_notes["texture_anomaly_interpretation"] = anomaly_result.interpretation
+                record.metric_notes["texture_anomaly_max_z"] = str(anomaly_result.max_z)
+                if anomaly_result.feature_flags:
+                    record.metric_notes["texture_anomaly_flags"] = ",".join(anomaly_result.feature_flags.keys())
+            except Exception:
+                record.metric_notes["texture_anomaly_score"] = "0.0"
+                record.metric_notes["texture_anomaly_interpretation"] = "computation_error"
+        return stage2_records
+
+
 class ExtractionEngine:
     def __init__(
         self,
@@ -100,23 +330,86 @@ class ExtractionEngine:
         self.neutral_expression = s1_config.get("neutral_expression", False)
         self.identity_only = s1_config.get("identity_only", False)
 
+        # Inline metrics extractor (replaces S2)
+        self._metrics_extractor = InlineMetricsExtractor(
+            output_dir=self.output_dir,
+            dataset=self.dataset,
+            config=self.config.get("s2", {}),
+        )
+        self._stage2_records: list[Stage2Record] = []
+
     def run(self) -> list[Stage1Record]:
         photos = list_images(self.input_dir)
         if self.limit is not None:
             photos = photos[: self.limit]
         records: list[Stage1Record] = []
         if not photos:
-            logger.warning("Нет фото для этапа 1 в %s", self.input_dir)
+            logger.warning(f"No photos found for S1 in {self.input_dir}")
             return records
+
+        total = len(photos)
+        logger.info(f"Processing {total} photos for {self.dataset.value} dataset (S1+metrics)")
+
+        error_count = 0
+        warning_count = 0
+
+        progress = create_progress(total=total, description=f"S1+Metrics {self.dataset.value}")
+        if hasattr(progress, '_progress') and progress._progress:
+            progress._progress.start()
 
         for index, photo_path in enumerate(photos, start=1):
             try:
+                progress.update(photo_id=photo_path.stem, status="reconstructing")
                 record = self._process_one(photo_path)
                 records.append(record)
-                logger.info("[s1] %s/%s %s -> %s", index, len(photos), photo_path.name, record.pose.bucket.value)
+
+                # Soft validation of info.json
+                info_issues = validate_info_json(record.model_dump(), photo_path.stem)
+                for issue in info_issues:
+                    if issue.level == "warning":
+                        logger.warning(str(issue))
+                        warning_count += 1
+                    elif issue.level == "attention":
+                        logger.attention(str(issue))
+
+                # Validate quality metrics
+                if record.quality:
+                    q_issues = validate_quality_metrics(record.quality.model_dump(), photo_path.stem)
+                    for issue in q_issues:
+                        if issue.level == "warning":
+                            logger.warning(str(issue))
+                            warning_count += 1
+                        else:
+                            logger.attention(str(issue))
+
+                progress.advance()
+
             except Exception as exc:
-                logger.exception("[s1] Ошибка на %s: %s", photo_path.name, exc)
+                logger.error(f"[{photo_path.stem}] Failed: {exc}")
+                error_count += 1
+                progress.update(photo_id=photo_path.stem, status=f"FAILED", error=True)
+                progress.advance()
+
+        if hasattr(progress, '_progress') and progress._progress:
+            progress._progress.stop()
+
+        # Fit cohorts and score anomalies
+        self._metrics_extractor.fit_cohorts()
+        self._stage2_records = self._metrics_extractor.score_anomalies(self._stage2_records)
+
+        # Save stage2 manifest
+        save_json([r.model_dump() for r in self._stage2_records], self.output_dir / "stage2_manifest.json")
+
         save_json([r.model_dump() for r in records], self.output_dir / "stage1_manifest.json")
+
+        # Summary
+        if error_count > 0:
+            logger.error(f"S1+Metrics complete: {len(records)}/{total} processed, {error_count} errors, {len(self._stage2_records)} metrics")
+        elif warning_count > 0:
+            logger.success(f"S1+Metrics complete: {len(records)}/{total} processed, {warning_count} warnings, {len(self._stage2_records)} metrics")
+        else:
+            logger.success(f"S1+Metrics complete: {len(records)}/{total} processed ✓, {len(self._stage2_records)} metrics")
+
         return records
 
     def _process_one(self, photo_path: Path) -> Stage1Record:
@@ -178,6 +471,7 @@ class ExtractionEngine:
         )
 
         expression_flags = self._expression_flags(reconstruction_result)
+
         record = Stage1Record(
             photo_id=photo_id,
             dataset=self.dataset,
@@ -196,20 +490,31 @@ class ExtractionEngine:
                 "texture": "available",
             },
         )
+
+        # ── INLINE METRICS EXTRACTION (replaces S2) ──
+        # Load face_mask.png as RGBA for texture extraction
+        rgba = cv2.imread(str(mask_path), cv2.IMREAD_UNCHANGED)
+        if rgba is None:
+            logger.warning(f"[{photo_id}] Failed to load face_mask.png for metrics")
+            rgba = np.zeros((FACE_CROP_HEIGHT, FACE_CROP_WIDTH, 4), dtype=np.uint8)
+
+        try:
+            stage2 = self._metrics_extractor.extract(record, reconstruction_dict, rgba)
+            self._stage2_records.append(stage2)
+        except Exception as exc:
+            logger.error(f"[{photo_id}] Inline metrics extraction failed: {exc}")
+
         save_json(record.model_dump(), photo_dir / "info.json")
         return record
 
     def _save_face_assets(self, image_bgr: np.ndarray, recon, photo_dir: Path) -> tuple[Path, Path, Path]:
-        """Сохраняет face_mask.png (424x500 RGBA letterbox crop), face_crop.jpg, thumb.jpg."""
         seg_visible = recon.payload.get("seg_visible")
         trans_params = recon.trans_params
         h, w = image_bgr.shape[:2]
 
-        # Build skin alpha mask from 3DDFA segmentation
         mask = None
         if seg_visible is not None and seg_visible.ndim == 3 and seg_visible.shape[2] >= 8:
-            # seg channels: [right_eye, left_eye, right_eyebrow, left_eyebrow, nose, up_lip, down_lip, skin]
-            skin_224 = np.maximum(seg_visible[:, :, 7], seg_visible[:, :, 4]).copy()  # skin + nose
+            skin_224 = np.maximum(seg_visible[:, :, 7], seg_visible[:, :, 4]).copy()
             excluded_224 = np.maximum.reduce([
                 seg_visible[:, :, 0], seg_visible[:, :, 1], seg_visible[:, :, 2], seg_visible[:, :, 3],
                 seg_visible[:, :, 5], seg_visible[:, :, 6],
@@ -218,7 +523,6 @@ class ExtractionEngine:
             skin_224 *= (1.0 - exclusion_weight)
             skin_224_uint8 = np.clip(skin_224 * 255, 0, 255).astype(np.uint8)
 
-            # Project from 224x224 to original image
             try:
                 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "core" / "3ddfa_v3"))
                 from util.io import back_resize_crop_img
@@ -231,7 +535,6 @@ class ExtractionEngine:
                 mask = cv2.resize(skin_224_uint8, (w, h), interpolation=cv2.INTER_LINEAR)
 
         if mask is None:
-            # Fallback: oval from landmarks
             landmarks = recon.landmarks_106
             if landmarks is not None and len(landmarks) > 0:
                 x_min, y_min = landmarks[:, 0].min(), landmarks[:, 1].min()
@@ -246,7 +549,6 @@ class ExtractionEngine:
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=1)
 
-        # Find bounding box of mask
         coords = cv2.findNonZero((mask > 10).astype(np.uint8))
         if coords is None:
             mask_path = save_face_mask_png(np.dstack([cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB), np.zeros((h, w), dtype=np.uint8)]), photo_dir / FACE_MASK_FILENAME)
@@ -280,17 +582,14 @@ class ExtractionEngine:
         face_crop_bgr = _resize_letterbox(face_crop_bgr, FACE_CROP_WIDTH, FACE_CROP_HEIGHT)
         face_crop_mask = _resize_letterbox_gray(face_crop_mask, FACE_CROP_WIDTH, FACE_CROP_HEIGHT)
 
-        # Save face_mask.png (RGBA)
         face_crop_rgba = cv2.cvtColor(face_crop_bgr, cv2.COLOR_BGR2BGRA)
         face_crop_rgba[:, :, 3] = face_crop_mask
         mask_path = photo_dir / FACE_MASK_FILENAME
         cv2.imwrite(str(mask_path), face_crop_rgba)
 
-        # Save face_crop.jpg (BGR preview)
         crop_path = photo_dir / FACE_CROP_FILENAME
         cv2.imwrite(str(crop_path), face_crop_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 95])
 
-        # Save thumb.jpg (100x100 center-crop)
         thumb_path = photo_dir / THUMB_FILENAME
         h_t, w_t = face_crop_bgr.shape[:2]
         side = min(w_t, h_t)
@@ -303,14 +602,12 @@ class ExtractionEngine:
         return mask_path, crop_path, thumb_path
 
     def _save_uv_assets(self, image_bgr: np.ndarray, recon_dict: dict, photo_dir: Path) -> dict[str, Path]:
-        """Сохраняет uv_texture.png и uv_confidence.png, если доступен UV-модуль."""
         paths = {}
         try:
             core_repo = Path(__file__).resolve().parents[2] / "core"
             sys.path.insert(0, str(core_repo))
             from uv_module.hd_uv_generator import HDUVConfig, HDUVTextureGenerator
 
-            # Transform vertices_2d from 224x224 crop space to original image coords
             v2d_224 = np.asarray(recon_dict.get("vertices_2d", []), dtype=np.float64)
             tp = recon_dict.get("trans_params")
             if v2d_224.size > 0 and tp is not None:
@@ -320,14 +617,12 @@ class ExtractionEngine:
             uv_gen = HDUVTextureGenerator(HDUVConfig(uv_size=768))
             uv_tex_analysis, uv_tex_beauty, uv_mask_visible, uv_confidence, aux = uv_gen.generate(image_bgr, recon_dict)
 
-            # Generator returns BGR, convert to RGB for PNG
             uv_texture_path = photo_dir / UV_TEXTURE_FILENAME
             uv_rgb = cv2.cvtColor(uv_tex_beauty, cv2.COLOR_BGR2RGB)
             from PIL import Image as PILImage
             PILImage.fromarray(uv_rgb.astype(np.uint8), mode="RGB").save(str(uv_texture_path))
             paths["uv_texture"] = uv_texture_path
 
-            # Save UV confidence
             uv_confidence_path = photo_dir / UV_CONFIDENCE_FILENAME
             if uv_confidence.ndim == 2:
                 conf_uint8 = np.clip(uv_confidence * 255.0, 0, 255).astype(np.uint8)
@@ -340,10 +635,6 @@ class ExtractionEngine:
         return paths
 
     def _transform_vertices_2d_to_original(self, vertices_2d_224: np.ndarray, trans_params: np.ndarray) -> np.ndarray:
-        """
-        Transform vertices_2d from 3DDFA's 224x224 crop space
-        to original image coordinates.
-        """
         v2d = vertices_2d_224.copy()
         target_size = 224
         v2d[:, 1] = target_size - 1 - v2d[:, 1]
@@ -358,7 +649,6 @@ class ExtractionEngine:
         return v2d
 
     def _save_mesh_assets(self, recon_dict: dict, photo_dir: Path) -> dict[str, Path]:
-        """Сохраняет mesh.obj и mesh.mtl из 3DDFA-реконструкции."""
         paths = {}
         try:
             vertices = np.asarray(recon_dict.get("vertices", []), dtype=np.float32)
@@ -367,7 +657,6 @@ class ExtractionEngine:
             if len(vertices) == 0 or len(triangles) == 0:
                 return paths
 
-            # Write MTL file
             mtl_path = photo_dir / MESH_MTL_FILENAME
             mtl_content = f"""# DEEPUTIN 3DDFA-V3 mesh
 newmtl face_material
@@ -381,31 +670,24 @@ map_Kd {UV_TEXTURE_FILENAME}
             mtl_path.write_text(mtl_content)
             paths["mesh_mtl"] = mtl_path
 
-            # Write OBJ file
             obj_path = photo_dir / MESH_OBJ_FILENAME
             lines = [f"mtllib {MESH_MTL_FILENAME}\n"]
-            # Vertices
             for v in vertices:
                 lines.append(f"v {v[0]:.6f} {v[1]:.6f} {v[2]:.6f}\n")
-            # Texture coordinates (placeholder)
             for v in vertices:
                 lines.append(f"vt 0.0 0.0\n")
-            # Normals
             for n in normals:
                 lines.append(f"vn {n[0]:.6f} {n[1]:.6f} {n[2]:.6f}\n")
-            # Faces
             lines.append("usemtl face_material\n")
             for t in triangles:
                 lines.append(f"f {t[0]+1}/{t[0]+1}/{t[0]+1} {t[1]+1}/{t[1]+1}/{t[1]+1} {t[2]+1}/{t[2]+1}/{t[2]+1}\n")
             obj_path.write_text("".join(lines))
             paths["mesh_obj"] = obj_path
-
         except Exception as exc:
             logger.warning("Mesh export error: %s", exc)
         return paths
 
     def _estimate_bbox_from_landmarks(self, recon) -> tuple[int, int, int, int]:
-        """Estimate face bbox from 3DDFA landmarks."""
         landmarks_106 = recon.landmarks_106
         if landmarks_106 is not None and len(landmarks_106) > 0:
             x_min, y_min = landmarks_106[:, 0].min(), landmarks_106[:, 1].min()
@@ -415,7 +697,6 @@ map_Kd {UV_TEXTURE_FILENAME}
         return (0, 0, 512, 512)
 
     def _reconstruction_to_dict(self, recon) -> dict:
-        """Convert ReconstructionResult to serializable dict for pickle."""
         return {
             "space": "3ddfa_v3_canonical",
             "image_shape": [int(recon.vertices_image.shape[0]), int(recon.vertices_image.shape[1])] if recon.vertices_image is not None else [512, 512],
@@ -426,13 +707,15 @@ map_Kd {UV_TEXTURE_FILENAME}
             "triangles": recon.triangles.tolist() if recon.triangles is not None else [],
             "normals": recon.normals_world.tolist() if recon.normals_world is not None else [],
             "landmarks_106": recon.landmarks_106.tolist() if recon.landmarks_106 is not None else [],
-            "landmarks_68": [],  # not extracted by default
+            "landmarks_68": [],
             "uv_coords": recon.uv_coords.tolist() if recon.uv_coords is not None else None,
             "pose": {
                 "yaw": float(recon.angles_deg[1]),
                 "pitch": float(recon.angles_deg[0]),
                 "roll": float(recon.angles_deg[2]),
             },
+            "angles_deg": [float(recon.angles_deg[0]), float(recon.angles_deg[1]), float(recon.angles_deg[2])],
+            "bucket": recon.pose_bucket,
             "rotation_matrix": recon.rotation_matrix.tolist() if recon.rotation_matrix is not None else [],
             "translation": recon.translation.tolist() if recon.translation is not None else [],
             "mesh_quality": {
@@ -441,6 +724,7 @@ map_Kd {UV_TEXTURE_FILENAME}
                 "visible_vertices": int(np.count_nonzero(recon.visible_idx_renderer)) if recon.visible_idx_renderer is not None else 0,
             },
             "annotation_groups": [g.tolist() for g in recon.annotation_groups] if recon.annotation_groups else [],
+            "visible_idx_renderer": recon.visible_idx_renderer.tolist() if recon.visible_idx_renderer is not None else None,
             "seg_visible": recon.payload.get("seg_visible"),
             "trans_params": recon.trans_params.tolist() if recon.trans_params is not None else None,
             "id_params": recon.payload.get("id_params", []).tolist() if isinstance(recon.payload.get("id_params"), np.ndarray) else [],
@@ -453,11 +737,10 @@ map_Kd {UV_TEXTURE_FILENAME}
             return {"smile_excluded": False, "jaw_excluded": False, "neutralized": False}
 
         exp_np = np.asarray(exp_params, dtype=float)
-        # exp[0] = jaw open, exp[1], exp[2] = smile
         jaw_open = float(abs(exp_np[0])) if len(exp_np) > 0 else 0.0
         smile_intensity = float(max(abs(exp_np[1]), abs(exp_np[2]))) if len(exp_np) > 2 else 0.0
 
-        smile_excluded = smile_intensity > 2.0  # threshold on PCA coeff
+        smile_excluded = smile_intensity > 2.0
         jaw_excluded = jaw_open > 0.8
 
         return {

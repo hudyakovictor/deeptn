@@ -238,13 +238,30 @@ def canonicalize_vertices_for_bucket(
     angles_deg: np.ndarray,
     view_group: str,
     rotation_matrix_applied: np.ndarray | None = None,
+    translation: np.ndarray | None = None,
 ) -> np.ndarray:
     """
     Приводит меш к bucket pose: pitch=0, roll=0, yaw=целевой для view_group.
-    3DDFA: vertices = base @ R_applied — undo через R_applied.T, затем target.
+
+    3DDFA pipeline:
+        base = compute_shape(id, exp)          # neutral mesh in frontal pose
+        R   = compute_rotation(angles).T        # pts @ R form: vertices = base @ R
+        transformed = base @ R + trans
+        vertices_camera = to_camera(transformed)  # НЕЛИНЕЙНО: z = cam_dist - z
+
+    Чтобы корректно canonicalize, нужно работать с WORLD vertices (base @ R + trans),
+    а не с camera vertices (где инвертирован Z).
+
+    Canonicalization:
+        raw     = base @ R_cur + trans
+        undo    = (raw - trans) @ R_cur.T = base
+        canon   = base @ R_tgt + trans = (raw - trans) @ R_cur.T @ R_tgt + trans
 
     rotation_matrix_applied: фактическая матрица из 3DDFA (recon.rotation_matrix).
     Без неё — fallback на euler; при большом |pitch| euler ≠ compute_rotation.
+
+    translation: вектор трансляции из 3DDFA (recon.translation).
+    Если не указан — fallback на вычитание centroid (менее точно при ненулевом trans).
     """
     target_yaw = float(_CANONICAL_YAW_BY_VIEW_GROUP.get(view_group, 0.0))
     r_tgt = euler_to_rotation_matrix_applied(
@@ -257,11 +274,15 @@ def canonicalize_vertices_for_bucket(
         r_cur = euler_to_rotation_matrix_applied(
             np.deg2rad(np.array([pitch, yaw, roll], dtype=np.float64))
         )
-    # raw = base @ r_cur  →  raw @ r_cur.T @ r_tgt = base @ r_tgt
+    # raw = base @ r_cur + t  →  (raw - t) @ r_cur.T @ r_tgt + t = base @ r_tgt + t
     r_align = r_cur.T @ r_tgt
 
-    centroid = vertices.mean(axis=0)
-    aligned_vertices = (vertices - centroid) @ r_align + centroid
+    if translation is not None and np.asarray(translation).size == 3:
+        t = np.asarray(translation, dtype=np.float64).reshape(3)
+        aligned_vertices = (vertices - t) @ r_align + t
+    else:
+        centroid = vertices.mean(axis=0)
+        aligned_vertices = (vertices - centroid) @ r_align + centroid
 
     return aligned_vertices
 

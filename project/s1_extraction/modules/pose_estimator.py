@@ -11,17 +11,23 @@ from torchvision import transforms
 _hpe_env = os.environ.get("DUTIN_HPE_PATH", "").strip()
 _possible_hpe_paths = [
     Path(_hpe_env) if _hpe_env else None,
+    Path(__file__).resolve().parents[3] / "core" / "head-pose-estimation",
     Path(__file__).resolve().parents[2] / "core" / "head-pose-estimation",
-    Path(__file__).resolve().parents[1] / "core" / "head-pose-estimation",
     Path("./backend/core/head-pose-estimation"),
-    Path("/Users/victorkhudyakov/dutin/core/head-pose-estimation"),
+    Path("./core/head-pose-estimation"),
 ]
 EXTERNAL_REPO_PATH = str(
-    next((p for p in _possible_hpe_paths if p is not None and p.exists()), _possible_hpe_paths[-1])
+    next((p for p in _possible_hpe_paths if p is not None and p.exists()), None)
 )
 
+if EXTERNAL_REPO_PATH is None:
+    logging.error(
+        "head-pose-estimation repository not found. "
+        "Set DUTIN_HPE_PATH environment variable or place it in ./core/head-pose-estimation"
+    )
+
 # Ensure the repository is in sys.path so we can import from it
-if EXTERNAL_REPO_PATH not in sys.path:
+if EXTERNAL_REPO_PATH and EXTERNAL_REPO_PATH not in sys.path:
     sys.path.insert(0, EXTERNAL_REPO_PATH)
 
 try:

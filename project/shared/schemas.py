@@ -48,7 +48,6 @@ class QualityMetrics(BaseModel):
     is_motion_blurred: bool = False
     is_jpeg_blocky: bool = False
     is_over_smoothed: bool = False
-    # V2 extended quality metrics
     q_laplacian_var: float = 0.0
     q_tenengrad: float = 0.0
     q_valid_patches: int = 0
@@ -113,7 +112,7 @@ class Stage2Record(BaseModel):
     geometry_identity_confidence: float = 0.0
     texture_skin_hint: str = "unknown"
     texture_skin_confidence: float = 0.0
-    texture_assessability: str = "eligible"  # eligible, low_confidence, not_assessable
+    texture_assessability: str = "eligible"
     quality_summary: dict[str, float] = Field(default_factory=dict)
 
 
@@ -161,7 +160,7 @@ class ForensicVerdict(BaseModel):
     evidence: dict[str, float] = Field(default_factory=dict)
 
 
-class Stage3Record(BaseModel):
+class Stage2IdentityRecord(BaseModel):
     photo_id: str
     dataset: PipelineDataset
     identity_hint: str
@@ -173,7 +172,7 @@ class Stage3Record(BaseModel):
     notes: list[str] = Field(default_factory=list)
 
 
-class Stage4Record(BaseModel):
+class Stage3Record(BaseModel):
     photo_id: str
     dataset: PipelineDataset
     pairwise: list[PairEvidence] = Field(default_factory=list)
@@ -181,7 +180,7 @@ class Stage4Record(BaseModel):
     strongest_neighbor: str | None = None
 
 
-class Stage5Record(BaseModel):
+class Stage4Record(BaseModel):
     photo_id: str
     dataset: PipelineDataset
     verdict: ForensicVerdict
@@ -189,7 +188,7 @@ class Stage5Record(BaseModel):
     anomaly_score: float = 0.0
 
 
-class Stage6Record(BaseModel):
+class Stage5Record(BaseModel):
     dataset: PipelineDataset
     generated_at: str
     summary: dict[str, Any] = Field(default_factory=dict)
@@ -203,4 +202,5 @@ class Stage6Record(BaseModel):
 
 
 MetricsRecord = Stage2Record
-ReportBundle = Stage6Record
+Stage3IdentityRecord = Stage2IdentityRecord  # alias
+ReportBundle = Stage5Record
