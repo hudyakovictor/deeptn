@@ -35,11 +35,12 @@ class CalibrationEngine:
         calibration_data = []
         for record in records:
             stage1 = stage1_records.get(record.photo_id)
+            pose_dict = {"yaw": 0.0, "pitch": 0.0, "roll": 0.0}
+            if stage1 and hasattr(stage1, 'pose') and stage1.pose:
+                pose_dict = {"yaw": float(stage1.pose.yaw), "pitch": float(stage1.pose.pitch), "roll": float(stage1.pose.roll)}
             calibration_data.append({
                 "bucket": record.bucket.value,
-                "pose": {"yaw": record.pose.yaw if hasattr(record, 'pose') else 0, 
-                         "pitch": record.pose.pitch if hasattr(record, 'pose') else 0, 
-                         "roll": record.pose.roll if hasattr(record, 'pose') else 0},
+                "pose": pose_dict,
                 "quality": record.quality.overall_quality if hasattr(record.quality, 'overall_quality') else 0.5,
                 "age_years": stage1.age_years if stage1 else None,
                 "geometry": dict(record.geometry),
@@ -199,6 +200,24 @@ class CalibrationEngine:
         return annotated
 
     def _load_stage2_records(self, root: Path) -> list[Stage2Record]:
+        manifest_path = root / "stage2_manifest.json"
+        if manifest_path.exists():
+            try:
+                manifest_data = load_json(manifest_path)
+                if manifest_data and isinstance(manifest_data, list):
+                    records = []
+                    for item in manifest_data:
+                        try:
+                            record = Stage2Record.model_validate(item)
+                            records.append(record)
+                        except Exception as exc:
+                            log.debug(f"Failed to parse stage2 manifest entry: {exc}")
+                    if records:
+                        log.info(f"Loaded {len(records)} records from stage2_manifest.json")
+                        return records
+            except Exception as exc:
+                log.warning(f"Failed to load stage2_manifest.json: {exc}")
+
         records: list[Stage2Record] = []
         for photo_dir in sorted(root.iterdir()):
             if not photo_dir.is_dir():

@@ -173,7 +173,7 @@ class JournalistThesisEngine:
     TEMPLATES = {
         "bone_mismatch": {
             "severity": "CRITICAL",
-            "text": "На фото от {date} костная структура {bone_zone} отличается от установленного baseline на {delta_mm:.1f} мм. Это превышает естественную вариативность реконструкции ({noise_mm:.1f} мм) в {ratio:.1f} раза. Такое изменение невозможно без хирургического вмешательства или подмены человека.",
+            "text": "На фото от {date} костная структура {bone_zone} отличается от baseline (normalized score: {geometry_normalized_score:.3f}, expected noise: {noise_normalized:.3f}). Превышение в {ratio:.1f} раз может указывать на хирургическое вмешательство или смену identity.",
             "evidence_type": "geometry",
         },
         "silicone_texture": {

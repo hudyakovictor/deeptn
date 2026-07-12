@@ -243,6 +243,24 @@ class CompareEngine:
         return anchors[:self.max_anchors]
 
     def _load_stage2_records(self, root: Path) -> list[Stage2Record]:
+        manifest_path = root / "stage2_manifest.json"
+        if manifest_path.exists():
+            try:
+                manifest_data = load_json(manifest_path)
+                if manifest_data and isinstance(manifest_data, list):
+                    records = []
+                    for item in manifest_data:
+                        try:
+                            record = Stage2Record.model_validate(item)
+                            records.append(record)
+                        except Exception as exc:
+                            log.debug(f"Failed to parse stage2 manifest entry: {exc}")
+                    if records:
+                        log.info(f"Loaded {len(records)} records from stage2_manifest.json")
+                        return records
+            except Exception as exc:
+                log.warning(f"Failed to load stage2_manifest.json: {exc}")
+
         records: list[Stage2Record] = []
         for photo_dir in sorted(root.iterdir()):
             if not photo_dir.is_dir():

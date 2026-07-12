@@ -126,20 +126,29 @@ class PipelineRunner:
 
         # ── S1: Extraction + Metrics (inline) ──
         stage1_main = stage1_cal = None
+        stage1_main_records = []
+        stage1_cal_records = []
         if "s1" in stages:
             log.info(f"── {STAGE_NAMES['s1']} ──")
 
             log.info(f"Processing main dataset ({main_photos} photos)...")
-            stage1_main = self._run_stage1(self.main_input, self.main_output, PipelineDataset.MAIN)
+            stage1_main_records, main_err, main_warn = self._run_stage1(self.main_input, self.main_output, PipelineDataset.MAIN)
+            self._total_errors += main_err
 
             log.info(f"Processing calibration dataset ({cal_photos} photos)...")
-            stage1_cal = self._run_stage1(self.calibration_input, self.calibration_output, PipelineDataset.CALIBRATION)
+            stage1_cal_records, cal_err, cal_warn = self._run_stage1(self.calibration_input, self.calibration_output, PipelineDataset.CALIBRATION)
+            self._total_errors += cal_err
+
+            stage1_main = stage1_main_records
+            stage1_cal = stage1_cal_records
 
             result["stage1"] = {
-                "main_count": len(stage1_main),
-                "calibration_count": len(stage1_cal),
+                "main_count": len(stage1_main_records),
+                "calibration_count": len(stage1_cal_records),
+                "main_errors": main_err,
+                "calibration_errors": cal_err,
             }
-            log.success(f"S1 complete: {len(stage1_main)} main + {len(stage1_cal)} calibration photos")
+            log.success(f"S1 complete: {len(stage1_main_records)} main + {len(stage1_cal_records)} calibration photos")
 
         # ── S2: Identity ──
         if "s2" in stages:
@@ -204,7 +213,11 @@ class PipelineRunner:
         elapsed = time.time() - pipeline_start
         mins = int(elapsed // 60)
         secs = int(elapsed % 60)
-        
+
+        if len(stage1_main_records) == 0 and "s1" in stages:
+            log.error("FATAL: No main photos were successfully processed")
+            self._total_errors += 1
+
         log.info("")
         log.info("=" * 60)
         if self._total_errors > 0:
@@ -212,7 +225,9 @@ class PipelineRunner:
         else:
             log.success(f"Pipeline completed successfully in {mins}m{secs:02d}s")
         log.info("=" * 60)
-        
+
+        result["total_errors"] = self._total_errors
+        result["elapsed_seconds"] = elapsed
         return result
 
     def _run_stage1(self, input_dir: Path, output_dir: Path, dataset: PipelineDataset):

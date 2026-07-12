@@ -173,6 +173,24 @@ class VerdictEngine:
         return records
 
     def _load_stage2_records(self, root: Path) -> dict[str, Stage2Record]:
+        manifest_path = root / "stage2_manifest.json"
+        if manifest_path.exists():
+            try:
+                manifest_data = load_json(manifest_path)
+                if manifest_data and isinstance(manifest_data, list):
+                    records = {}
+                    for item in manifest_data:
+                        try:
+                            record = Stage2Record.model_validate(item)
+                            records[record.photo_id] = record
+                        except Exception as exc:
+                            log.debug(f"Failed to parse stage2 manifest entry: {exc}")
+                    if records:
+                        log.info(f"Loaded {len(records)} records from stage2_manifest.json")
+                        return records
+            except Exception as exc:
+                log.warning(f"Failed to load stage2_manifest.json: {exc}")
+
         records: dict[str, Stage2Record] = {}
         for photo_dir in sorted(root.iterdir()):
             if not photo_dir.is_dir():
@@ -599,15 +617,24 @@ class VerdictEngine:
         bio_flags: list[dict],
     ) -> dict:
         """Детекция синтетики H1 через комплексный анализ."""
-        # Формируем anchor_comparison из pairs
         anchor_comparison = {}
         if pairs:
             best_pair = max(pairs, key=lambda p: p.confidence if hasattr(p, 'confidence') else 0.5)
+            icp_dist = 0.0
+            icp_heatmap_sum = 0.0
+            icp_heatmap_count = 0
+            for p in pairs:
+                for flag in p.anomaly_flags:
+                    if flag.startswith("icp_dist="):
+                        try:
+                            icp_dist = max(icp_dist, float(flag.split("=")[1]))
+                        except (ValueError, IndexError):
+                            pass
             anchor_comparison = {
                 "excess_distance": best_pair.geometry_distance,
-                "heatmap_mean": best_pair.texture_distance,
-                "heatmap_max": max(p.geometry_distance for p in pairs),
-                "bone_zone_violations": sum(1 for p in pairs if p.geometry_distance > 1.0),
+                "icp_distance": icp_dist,
+                "texture_distance": best_pair.texture_distance,
+                "same_suspicion": best_pair.same_suspicion,
             }
         
         # Формируем texture_anomaly

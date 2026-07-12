@@ -40,8 +40,11 @@ def load_json(path: str | Path, default: Any | None = None) -> Any:
 def save_json(data: Any, path: str | Path) -> Path:
     p = Path(path)
     ensure_dir(p.parent)
-    with p.open("w", encoding="utf-8") as fh:
+    import tempfile
+    tmp = p.parent / f".{p.name}.{os.getpid()}.tmp"
+    with tmp.open("w", encoding="utf-8") as fh:
         json.dump(_json_ready(data), fh, ensure_ascii=False, indent=2, sort_keys=True)
+    tmp.rename(p)
     return p
 
 
@@ -107,7 +110,11 @@ def list_images(path: str | Path) -> list[Path]:
 
 
 def stable_photo_id(path: str | Path) -> str:
-    return Path(path).stem
+    p = Path(path)
+    if p.parent.name == p.stem:
+        return p.stem
+    path_hash = md5(str(p.resolve()).encode()).hexdigest()[:8]
+    return f"{p.stem}_{path_hash}"
 
 
 def parse_date_from_name(name: str) -> date | None:

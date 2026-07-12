@@ -120,7 +120,7 @@ class InlineMetricsExtractor:
         from .metrics.physical_features import PhysicalTextureExtractor
 
         self.geometry_resolver = GeometryIdentityResolver(geometry_table)
-        self.texture_classifier = TextureSkinClassifier(texture_leaderboard)
+        self.texture_classifier = TextureSkinClassifier(quality_compensation=False)
         self.geometry_catalog = load_geometry_metric_catalog()
         self.texture_catalog = load_texture_metric_catalog(texture_leaderboard)
         self.texture_extractor = TextureExtractor()
@@ -190,7 +190,11 @@ class InlineMetricsExtractor:
         texture.update(physical_features)
 
         # ── Texture classification ──
-        texture_hint = self.texture_classifier.classify(texture, record.quality)
+        texture_hint = self.texture_classifier.classify(
+            texture, record.quality,
+            pose={"yaw": float(record.pose.yaw), "pitch": float(record.pose.pitch), "roll": float(record.pose.roll)},
+            year=record.date.year if record.date else None,
+        )
 
         posterior = texture_hint.get("posterior", {}) if isinstance(texture_hint, dict) else {}
         try:
@@ -337,15 +341,17 @@ class ExtractionEngine:
             config=self.config.get("s2", {}),
         )
         self._stage2_records: list[Stage2Record] = []
+        self._error_count = 0
+        self._warning_count = 0
 
-    def run(self) -> list[Stage1Record]:
+    def run(self) -> tuple[list[Stage1Record], int, int]:
         photos = list_images(self.input_dir)
         if self.limit is not None:
             photos = photos[: self.limit]
         records: list[Stage1Record] = []
         if not photos:
             logger.warning(f"No photos found for S1 in {self.input_dir}")
-            return records
+            return records, 0, 0
 
         total = len(photos)
         logger.info(f"Processing {total} photos for {self.dataset.value} dataset (S1+metrics)")
@@ -410,7 +416,9 @@ class ExtractionEngine:
         else:
             logger.success(f"S1+Metrics complete: {len(records)}/{total} processed ✓, {len(self._stage2_records)} metrics")
 
-        return records
+        self._error_count = error_count
+        self._warning_count = warning_count
+        return records, error_count, warning_count
 
     def _process_one(self, photo_path: Path) -> Stage1Record:
         photo_id = stable_photo_id(photo_path)
@@ -501,6 +509,12 @@ class ExtractionEngine:
         try:
             stage2 = self._metrics_extractor.extract(record, reconstruction_dict, rgba)
             self._stage2_records.append(stage2)
+            from ..shared.validation import clean_geometry_metrics, clean_texture_metrics
+            photo_dir = Path(record.face_mask_path).parent
+            clean_geo = clean_geometry_metrics(stage2.geometry)
+            clean_tex = clean_texture_metrics(stage2.texture)
+            save_json(clean_geo, photo_dir / "geometry_metrics.json")
+            save_json(clean_tex, photo_dir / "texture_metrics.json")
         except Exception as exc:
             logger.error(f"[{photo_id}] Inline metrics extraction failed: {exc}")
 
@@ -701,7 +715,7 @@ map_Kd {UV_TEXTURE_FILENAME}
             "space": "3ddfa_v3_canonical",
             "image_shape": [int(recon.vertices_image.shape[0]), int(recon.vertices_image.shape[1])] if recon.vertices_image is not None else [512, 512],
             "vertices": recon.vertices_world.tolist() if recon.vertices_world is not None else [],
-            "vertices_canonical": recon.vertices_camera.tolist() if recon.vertices_camera is not None else [],
+            "vertices_camera": recon.vertices_camera.tolist() if recon.vertices_camera is not None else [],
             "vertices_2d": recon.vertices_image.tolist() if recon.vertices_image is not None else [],
             "vertices_3d": recon.vertices_world.tolist() if recon.vertices_world is not None else [],
             "triangles": recon.triangles.tolist() if recon.triangles is not None else [],

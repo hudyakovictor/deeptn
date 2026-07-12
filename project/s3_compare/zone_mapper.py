@@ -182,7 +182,7 @@ def _fallback_zone(
     }
 
     center_norm = np.array(zone_centers_norm.get(zone_name, (0.5, 0.5, 0.5)))
-    target = skin_center + center_norm * face_range
+    target = face_center + center_norm * face_range
 
     dists = np.linalg.norm(skin_verts - target, axis=1)
     n_pick = max(50, len(skin_idx) // 20)  # ~5% of skin vertices

@@ -1,11 +1,14 @@
 """Geometry extractor - извлечение геометрических метрик из 3DDFA-V3 реконструкции."""
 from __future__ import annotations
 
+import logging
 import numpy as np
 from typing import Any, Dict, List, Optional
 
 from deeputin.shared.schemas import PoseBucket
 from deeputin.s1_extraction.modules.alignment import canonicalize_vertices_for_bucket
+
+logger = logging.getLogger("s1_extraction.geometry")
 
 
 # Zone names matching 3DDFA-V3 annotation_groups order:
@@ -300,6 +303,10 @@ class GeometryExtractor:
         visible_idx = reconstruction.get("visible_idx_renderer", None)
         if visible_idx is not None:
             visible_idx = np.asarray(visible_idx, dtype=bool)
+            if len(visible_idx) != len(vertices):
+                raise ValueError(
+                    f"visibility mask length mismatch: {len(visible_idx)} vs {len(vertices)} vertices"
+                )
         
         # Use WORLD vertices (not camera) — canonicalize требует линейную форму base @ R + trans
         if vertices.size > 0:
@@ -327,8 +334,9 @@ class GeometryExtractor:
                     rotation_matrix_applied=rot_matrix,
                     translation=translation,
                 ).astype(np.float32)
-            except Exception:
-                pass  # fallback to raw vertices
+            except Exception as exc:
+                logger.warning(f"Canonicalization failed for bucket={bucket}: {exc}")
+                metrics["_canonicalization_failed"] = 1.0
         
         # Compute face scale (inter-zygomatic distance approximation)
         if verts.size > 0:

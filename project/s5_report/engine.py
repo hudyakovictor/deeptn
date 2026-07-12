@@ -357,38 +357,54 @@ class ReportEngine:
         if h2_photos:
             for v in h2_photos[:10]:
                 evidence = v.verdict.evidence
-                pair_ids = []
+                photo_date = None
                 for row in timeline:
                     if row.get("photo_id") == v.photo_id:
-                        pair_ids.append(f"{v.photo_id}__anchor")
+                        photo_date = row.get("date")
                         break
-                
+
                 findings.append({
                     "type": "bone_mismatch",
                     "params": {
-                        "date": "N/A",
+                        "date": photo_date if photo_date else "unknown",
                         "bone_zone": "composite",
-                        "delta_mm": evidence.get("geometry", 0) * 100,
-                        "noise_mm": 1.5,
+                        "geometry_normalized_score": evidence.get("geometry", 0),
+                        "noise_normalized": 0.015,
                         "ratio": evidence.get("geometry", 0) / 0.015 if evidence.get("geometry", 0) > 0 else 1.0,
                     },
                     "photo_ids": [v.photo_id],
-                    "pair_ids": pair_ids,
+                    "pair_ids": [],
                     "confidence": v.verdict.confidence,
                 })
         
         # Хронологические аномалии
         chronology_points = chronology.get("points", [])
-        for point in chronology_points:
+        processed_flags = set()
+        for i, point in enumerate(chronology_points):
             if point.get("flags"):
                 for flag in point["flags"]:
-                    if "spike" in flag or "age_inversion" in flag:
+                    if ("spike" in flag or "age_inversion" in flag) and flag not in processed_flags:
+                        processed_flags.add(flag)
+                        date_a = point.get("date")
+                        date_b = None
+                        gap_days = 0
+                        if i + 1 < len(chronology_points):
+                            next_point = chronology_points[i + 1]
+                            date_b = next_point.get("date")
+                            if date_a and date_b:
+                                try:
+                                    from datetime import datetime
+                                    d_a = datetime.fromisoformat(date_a).date() if isinstance(date_a, str) else date_a
+                                    d_b = datetime.fromisoformat(date_b).date() if isinstance(date_b, str) else date_b
+                                    gap_days = abs((d_b - d_a).days)
+                                except Exception:
+                                    pass
                         findings.append({
                             "type": "chronology_impossible",
                             "params": {
-                                "date_a": point.get("date", "N/A"),
-                                "date_b": point.get("date", "N/A"),
-                                "gap_days": 0,
+                                "date_a": date_a if date_a else "unknown",
+                                "date_b": date_b if date_b else "unknown",
+                                "gap_days": gap_days,
                                 "body_part": "face geometry",
                                 "min_days": 180,
                                 "surgery_type": "biological constraint",

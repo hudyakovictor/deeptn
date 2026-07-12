@@ -13,12 +13,14 @@ _CANONICAL_YAW_BY_VIEW_GROUP: dict[str, float] = {
     "frontal": 0.0,
     "left_threequarter_light": -22.5,
     "right_threequarter_light": 22.5,
-    "left_threequarter_mid": -45.0,
-    "right_threequarter_mid": 45.0,
+    "left_threequarter_medium": -45.0,
+    "right_threequarter_medium": 45.0,
     "left_threequarter_deep": -67.5,
     "right_threequarter_deep": 67.5,
     "left_profile": -90.0,
     "right_profile": 90.0,
+    "left_threequarter_mid": -45.0,
+    "right_threequarter_mid": 45.0,
 }
 
 CANONICAL_YAW_BY_VIEW_GROUP = _CANONICAL_YAW_BY_VIEW_GROUP
