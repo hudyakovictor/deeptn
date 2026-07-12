@@ -110,11 +110,7 @@ def list_images(path: str | Path) -> list[Path]:
 
 
 def stable_photo_id(path: str | Path) -> str:
-    p = Path(path)
-    if p.parent.name == p.stem:
-        return p.stem
-    path_hash = md5(str(p.resolve()).encode()).hexdigest()[:8]
-    return f"{p.stem}_{path_hash}"
+    return Path(path).stem
 
 
 def parse_date_from_name(name: str) -> date | None:
