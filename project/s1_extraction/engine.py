@@ -82,10 +82,11 @@ class InlineMetricsExtractor:
     Используется внутри ExtractionEngine._process_one.
     """
 
-    def __init__(self, output_dir: Path, dataset: PipelineDataset, config: dict | None = None):
+    def __init__(self, output_dir: Path, dataset: PipelineDataset, config: dict | None = None, reconstruction_adapter: Any = None):
         self.output_dir = output_dir
         self.dataset = dataset
         self.config = config or {}
+        self.reconstruction_adapter = reconstruction_adapter
 
         data_root = Path(sys.modules['deeputin.shared.utils'].__file__).parent.parent.parent / "data"
         # Try env var first
@@ -110,7 +111,6 @@ class InlineMetricsExtractor:
             texture_leaderboard = Path(__file__).resolve().parents[2] / "data" / "imgtest" / "unified_test" / "clean_feature_leaderboard.csv"
 
         # Lazy imports to avoid circular deps
-        from .metrics.modules.geometry_extractor import GeometryExtractor
         from .metrics.modules.texture.texture_extractor import TextureExtractor
         from .metrics.modules.geometry.resolver import GeometryIdentityResolver
         from .metrics.modules.texture.classifier_v5 import TextureSkinClassifierV5 as TextureSkinClassifier
@@ -124,7 +124,6 @@ class InlineMetricsExtractor:
         self.geometry_catalog = load_geometry_metric_catalog()
         self.texture_catalog = load_texture_metric_catalog(texture_leaderboard)
         self.texture_extractor = TextureExtractor()
-        self.geometry_extractor = GeometryExtractor()
         self.cohort_detector = CohortTextureAnomalyDetectorV2()
         self.physical_extractor = PhysicalTextureExtractor()
 
@@ -135,12 +134,42 @@ class InlineMetricsExtractor:
         photo_id = record.photo_id
         photo_dir = Path(record.face_mask_path).parent
 
-        # ── Geometry metrics ──
+        # ── Geometry metrics (full legacy system) ──
+        geometry = {}
         try:
-            geometry = self.geometry_extractor.extract(reconstruction)
+            from .metrics.modules.geometry.legacy_metrics.context import build_metric_context
+            from .metrics.modules.geometry.legacy_metrics.runner import compute_single_photo_metrics
+            from .metrics.modules.geometry.legacy_metrics import registry
+
+            raw_bucket = record.pose.bucket.value if hasattr(record.pose, 'bucket') else "unknown"
+            _BUCKET_FALLBACK = {
+                "left_threequarter_medium": "left_threequarter_light",
+                "right_threequarter_medium": "right_threequarter_light",
+                "left_threequarter_mid": "left_threequarter_light",
+                "right_threequarter_mid": "right_threequarter_light",
+                "profile_left": "left_threequarter_light",
+                "profile_right": "right_threequarter_light",
+                "unknown": "frontal",
+            }
+            legacy_bucket = _BUCKET_FALLBACK.get(raw_bucket, raw_bucket)
+            if len(registry.specs_for_bucket(legacy_bucket, scope="single")) == 0:
+                legacy_bucket = "frontal"
+
+            ctx = build_metric_context(
+                photo_id=photo_id,
+                image_path=Path(record.source_path),
+                reconstruction=reconstruction,
+                adapter=self.reconstruction_adapter,
+                pose_bucket=legacy_bucket,
+                quality=record.quality.model_dump() if record.quality else None,
+            )
+            legacy_values, legacy_errors = compute_single_photo_metrics(ctx)
+            for mv in legacy_values:
+                geometry[mv.spec.name] = mv.value
+            if legacy_errors:
+                logger.warning(f"[{photo_id}] {len(legacy_errors)} legacy metric errors")
         except Exception as exc:
-            logger.warning(f"[{photo_id}] Geometry extraction failed: {exc}")
-            geometry = {}
+            logger.warning(f"[{photo_id}] Geometry metrics failed: {exc}")
 
         # ── Texture metrics ──
         class TextureCtx:
@@ -339,6 +368,7 @@ class ExtractionEngine:
             output_dir=self.output_dir,
             dataset=self.dataset,
             config=self.config.get("s2", {}),
+            reconstruction_adapter=self.reconstruction_adapter,
         )
         self._stage2_records: list[Stage2Record] = []
         self._error_count = 0
@@ -739,10 +769,12 @@ map_Kd {UV_TEXTURE_FILENAME}
             },
             "annotation_groups": [g.tolist() for g in recon.annotation_groups] if recon.annotation_groups else [],
             "visible_idx_renderer": recon.visible_idx_renderer.tolist() if recon.visible_idx_renderer is not None else None,
-            "seg_visible": recon.payload.get("seg_visible"),
             "trans_params": recon.trans_params.tolist() if recon.trans_params is not None else None,
-            "id_params": recon.payload.get("id_params", []).tolist() if isinstance(recon.payload.get("id_params"), np.ndarray) else [],
-            "exp_params": recon.payload.get("exp_params", []).tolist() if isinstance(recon.payload.get("exp_params"), np.ndarray) else [],
+            "payload": {
+                "seg_visible": recon.payload.get("seg_visible"),
+                "id_params": recon.payload.get("id_params", []).tolist() if isinstance(recon.payload.get("id_params"), np.ndarray) else [],
+                "exp_params": recon.payload.get("exp_params", []).tolist() if isinstance(recon.payload.get("exp_params"), np.ndarray) else [],
+            },
         }
 
     def _expression_flags(self, recon) -> dict[str, bool]:

@@ -147,6 +147,8 @@ class PairEvidence(BaseModel):
     synthetic_suspicion: float = 0.0
     different_suspicion: float = 0.0
     same_suspicion: float = 0.0
+    icp_distance: float = 0.0
+    heatmap: dict[str, float] = Field(default_factory=dict)
     anomaly_flags: list[str] = Field(default_factory=list)
     notes: list[str] = Field(default_factory=list)
 

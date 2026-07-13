@@ -358,8 +358,6 @@ def validate_geometry_metrics(
 TEXTURE_NOISE_FIELDS = {
     "texture_feature_weights_json",  # Internal debug field
     "texture_noise_sigma",           # Duplicate of noise_level
-    "specular_dispersion",           # Always 0.0
-    "specular_sharpness",            # Always 0.0
 }
 
 # Fields to REMOVE from info.json (unused downstream)

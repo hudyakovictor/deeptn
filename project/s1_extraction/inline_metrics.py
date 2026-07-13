@@ -54,10 +54,12 @@ class InlineMetricsExtractor:
         output_dir: str | Path,
         dataset: PipelineDataset,
         config: dict | None = None,
+        reconstruction_adapter: Any = None,
     ) -> None:
         self.output_dir = Path(output_dir)
         self.dataset = dataset
         self.config = config or {}
+        self.reconstruction_adapter = reconstruction_adapter
 
         # Paths for reference tables
         import os
@@ -116,6 +118,28 @@ class InlineMetricsExtractor:
         except Exception as exc:
             log.warning(f"[{photo_id}] Geometry extraction failed: {exc}")
             geometry = {}
+
+        # ── Legacy full geometry metrics (1000+ metrics) ──
+        try:
+            from .metrics.modules.geometry.legacy_metrics.context import build_metric_context
+            from .metrics.modules.geometry.legacy_metrics.runner import compute_single_photo_metrics
+
+            ctx = build_metric_context(
+                photo_id=photo_id,
+                image_path=Path(record.source_path),
+                reconstruction=reconstruction,
+                adapter=self.reconstruction_adapter,
+                pose_bucket=record.pose.bucket.value if hasattr(record.pose, 'bucket') else "unknown",
+                quality=record.quality.model_dump() if record.quality else None,
+                geometry_metrics=geometry,
+            )
+            legacy_values, legacy_errors = compute_single_photo_metrics(ctx)
+            for mv in legacy_values:
+                geometry[mv.spec.name] = mv.value
+            if legacy_errors:
+                log.warning(f"[{photo_id}] {len(legacy_errors)} legacy metric errors")
+        except Exception as exc:
+            log.debug(f"[{photo_id}] Legacy metrics not available: {exc}")
 
         # ── Texture metrics ──
         class TextureCtx:

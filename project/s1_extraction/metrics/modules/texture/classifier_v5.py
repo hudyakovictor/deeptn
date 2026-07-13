@@ -55,15 +55,6 @@ MODERATE_REAL_THRESHOLD = 2.7    # comp < 2.7 → REAL (85%)
 MODERATE_SILICONE_THRESHOLD = 3.2  # comp > 3.2 → SILICONE (85%)
 
 # =============================================================================
-# ERA-BASED PRIORS (from chronological analysis)
-# =============================================================================
-ERA_PRIORS = {
-    "pre_2012": 0.05,      # Original Putin era — silicone very unlikely
-    "2012_2021": 0.40,     # Udmurt era — possible silicone
-    "post_2021": 0.60,     # Vasilich era — silicone likely
-}
-
-# =============================================================================
 # QUALITY GATE
 # =============================================================================
 HARD_QUALITY_GATE = 0.12   # Below this → SKIP entirely
@@ -191,20 +182,10 @@ class TextureSkinClassifierV5:
             comp_zone = "moderate_silicone"
         
         # ═══ STAGE 5: Bayesian Fusion ═══
-        # Era prior
-        if year is not None:
-            if year < 2012:
-                prior = ERA_PRIORS["pre_2012"]
-                era = "pre_2012"
-            elif year < 2021:
-                prior = ERA_PRIORS["2012_2021"]
-                era = "2012_2021"
-            else:
-                prior = ERA_PRIORS["post_2021"]
-                era = "post_2021"
-        else:
-            prior = 0.30  # Default neutral prior
-            era = "unknown"
+        # Prior should come from external calibration data, not hardcoded by year.
+        # Using neutral prior (0.5) — no bias toward real or silicone.
+        prior = 0.5
+        era = "unknown"
         
         # Likelihood ratio from composite
         # Approximate with normal distributions

@@ -8,7 +8,6 @@ import re
 from collections import defaultdict
 from dataclasses import asdict, is_dataclass
 from datetime import date, datetime
-from hashlib import md5
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -392,14 +391,6 @@ def _jpeg_blockiness(gray: np.ndarray) -> float:
     boundary = boundary[:, :min_w]
     inside = inside[:, :min_w]
     return float(np.mean(np.abs(boundary.astype(np.float32) - inside.astype(np.float32)))) / 10.0 + 1.0
-
-
-def md5_file(path: str | Path) -> str:
-    hasher = md5()
-    with Path(path).open("rb") as fh:
-        for chunk in iter(lambda: fh.read(65536), b""):
-            hasher.update(chunk)
-    return hasher.hexdigest()
 
 
 def save_face_mask_png(rgba: np.ndarray, path: str | Path) -> Path:

@@ -85,37 +85,10 @@ class ReconstructionAdapter:
         self.backbone = backbone
         self.runtime_device = self._resolve_runtime_device(self.device)
         self._face_model_assets = self._load_face_model_assets()
-        self._cache: dict[str, ReconstructionResult] = {}
-        self._cache_keys_queue: list[str] = []
         self._model = None
         self._detector = None
-        self._max_cache_size = _max_cache_size
         self._last_reconstruction_trust_issue: str | None = None
         self._init_models()
-
-    def _evict_cache_if_needed(self):
-        """
-        [SYS-02] Защита от OOM (Out Of Memory).
-        Удаляем старые тензоры и принудительно очищаем VRAM.
-        """
-        while len(self._cache) >= self._max_cache_size:
-            oldest_key = self._cache_keys_queue.pop(0)
-            removed_item = self._cache.pop(oldest_key, None)
-
-            # Явно удаляем тяжелые тензоры
-            if removed_item:
-                del removed_item
-
-            # Принудительный вызов сборщика мусора Python
-            gc.collect()
-
-            # Очистка кэша видеопамяти
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-                torch.mps.empty_cache()
-
-            log_progress(f"Cache evicted: {oldest_key}. VRAM cleared.")
 
     def _load_face_model_assets(self) -> dict:
         assets_path = CORE_3DDFA_ROOT / "assets" / "face_model.npy"
@@ -180,20 +153,9 @@ class ReconstructionAdapter:
         except Exception as exc:
             raise RuntimeError(f"Failed to open image {image_path}: {exc}") from exc
 
-        # [FIX 37]: Pixel-based image MD5 hashing to prevent cache collision
         pixel_array = np.asarray(image)
-        file_hash = hashlib.md5(pixel_array.tobytes()).hexdigest()
-        cache_key = f"{image_path.name}_{file_hash}_{neutral_expression}_{identity_only}_{self.backbone}"
-
-        if cache_key in self._cache:
-            log_progress(f"Cache HIT for {image_path.name}")
-            return self._cache[cache_key]
-
-        log_progress(f"Cache MISS for {image_path.name}. Extracting 3D...")
-        self._evict_cache_if_needed()
         self._last_reconstruction_trust_issue = None
 
-        # [FIX 38]: Robust try...except block that guarantees CPU/GPU VRAM cleanup on forward-pass failure
         try:
             log_progress(f"Reconstructing {image_path.name}: running face detector")
             try:
@@ -305,8 +267,7 @@ class ReconstructionAdapter:
                     "trust_issue": getattr(self, '_last_reconstruction_trust_issue', None),
                 },
             )
-            self._cache[cache_key] = reconstruction
-            self._cache_keys_queue.append(cache_key)
+            self._last_reconstruction_trust_issue = None
             return reconstruction
 
         except Exception as e:
@@ -393,9 +354,36 @@ def resolve_reconstruction(
     neutral_expression: bool,
     identity_only: bool = False,
 ) -> ReconstructionResult:
-    """Прямая реконструкция без дискового кэша."""
+    """Always reconstruct — no disk cache."""
     return adapter.reconstruct(
         image_path,
         neutral_expression=neutral_expression,
         identity_only=identity_only,
     )
+
+
+def _dict_to_result(d: dict) -> ReconstructionResult:
+    """Reconstruct ReconstructionResult from saved dict."""
+    import torch
+    from .types import ReconstructionResult
+    # Saved dict uses 'image_shape', not 'image_size'
+    # ReconstructionResult doesn't have image_size field
+    result = ReconstructionResult(
+        vertices_world=np.asarray(d.get("vertices", []), dtype=np.float32),
+        vertices_camera=np.asarray(d.get("vertices_camera", d.get("vertices_canonical", [])), dtype=np.float32),
+        vertices_image=np.asarray(d.get("vertices_2d", []), dtype=np.float32),
+        triangles=np.asarray(d.get("triangles", []), dtype=np.int32),
+        normals_world=np.asarray(d.get("normals", []), dtype=np.float32),
+        landmarks_106=np.asarray(d.get("landmarks_106", []), dtype=np.float32),
+        angles_deg=np.asarray(d.get("angles_deg", [0.0, 0.0, 0.0]), dtype=np.float32),
+        pose_bucket=d.get("bucket", "unknown"),
+        rotation_matrix=np.asarray(d.get("rotation_matrix", []), dtype=np.float64),
+        translation=np.asarray(d.get("translation", []), dtype=np.float64),
+        payload={
+            "id_params": np.asarray(d.get("id_params", []), dtype=np.float32),
+            "exp_params": np.asarray(d.get("exp_params", []), dtype=np.float32),
+            "seg_visible": d.get("seg_visible"),
+        },
+        trans_params=d.get("trans_params"),
+    )
+    return result

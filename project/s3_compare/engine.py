@@ -117,6 +117,7 @@ class CompareEngine:
             grouped[record.bucket.value].append(record)
 
         evidence: list[PairEvidence] = []
+        seen_pair_ids: set[str] = set()
         pair_index: dict[str, list[dict[str, object]]] = defaultdict(list)
         
         # Count total pairs for progress
@@ -154,6 +155,9 @@ class CompareEngine:
                     try:
                         progress.update(photo_id=f"{a.photo_id}↔{b.photo_id}", status="comparing")
                         pair = self._compare_pair(a, b, reference, stage1_records, reconstructions)
+                        if pair.pair_id in seen_pair_ids:
+                            continue
+                        seen_pair_ids.add(pair.pair_id)
                         evidence.append(pair)
                         pair_index[a.photo_id].append(pair.model_dump())
                         pair_index[b.photo_id].append(pair.model_dump())
@@ -171,6 +175,9 @@ class CompareEngine:
                     try:
                         progress.update(photo_id=f"{anchor.photo_id}↔{current.photo_id}", status="comparing")
                         pair = self._compare_pair(anchor, current, reference, stage1_records, reconstructions)
+                        if pair.pair_id in seen_pair_ids:
+                            continue
+                        seen_pair_ids.add(pair.pair_id)
                         evidence.append(pair)
                         pair_index[anchor.photo_id].append(pair.model_dump())
                         pair_index[current.photo_id].append(pair.model_dump())
@@ -361,10 +368,6 @@ class CompareEngine:
         if geometry_noise_discount > 0.2 or texture_noise_discount > 0.2:
             anomaly_flags.append("calibration_discounted")
         
-        # Add ICP evidence if available
-        if icp_distance > 0:
-            anomaly_flags.append(f"icp_dist={icp_distance:.3f}")
-        
         # Expression-aware zone weighting
         expr_flags_a = self._get_expression_flags(stage1_a)
         expr_flags_b = self._get_expression_flags(stage1_b)
@@ -409,8 +412,8 @@ class CompareEngine:
         """ICP alignment of two 3DDFA-V3 meshes."""
         try:
             # Get canonical vertices
-            verts_a = np.asarray(recon_a.get("vertices_canonical", recon_a.get("vertices", [])), dtype=np.float32)
-            verts_b = np.asarray(recon_b.get("vertices_canonical", recon_b.get("vertices", [])), dtype=np.float32)
+            verts_a = np.asarray(recon_a.get("vertices", []), dtype=np.float32)
+            verts_b = np.asarray(recon_b.get("vertices", []), dtype=np.float32)
             
             if verts_a.size == 0 or verts_b.size == 0:
                 return None
@@ -435,8 +438,8 @@ class CompareEngine:
             # Procrustes alignment (no scale for forensic)
             aligned_src, R, t, scale = procrustes_align(src, tgt, allow_scale=False)
             
-            # Apply to full mesh
-            full_aligned = procrustes_align(verts_a, verts_b, allow_scale=False)[0]
+            # Apply saved R/t to full mesh
+            full_aligned = scale * (verts_a @ R) + t
             
             # Distance
             face_scale = max(verts_a[:, 0].max() - verts_a[:, 0].min(), 1.0)
@@ -467,7 +470,16 @@ class CompareEngine:
         channel: str,
         age_gap_years: float = 0.0,
     ) -> tuple[float, float, int]:
-        keys = sorted(set(a_metrics) & set(b_metrics))
+        _IDENTITY_METRICS_SKIP = frozenset({
+            "pose_yaw", "pose_pitch", "pose_roll",
+            "face_scale",
+            "mesh_vertex_count",
+        })
+        keys = sorted(
+            k for k in (set(a_metrics) & set(b_metrics))
+            if (k.startswith("bone_") or k.startswith("texture_"))
+            and k not in _IDENTITY_METRICS_SKIP
+        )
         if not keys:
             return 0.0, 0.0, 0
         noise_bucket = reference.pairwise_noise.get(bucket, {}) if reference is not None else {}
@@ -482,7 +494,7 @@ class CompareEngine:
             base = abs(va - vb) / scale
             if key.startswith("texture_"):
                 key_weight = 0.85
-            elif key.startswith("mesh_") or key.endswith("_span") or key.startswith("face_") or key.startswith("zone_") or key.startswith("bone_"):
+            elif key.startswith("bone_"):
                 key_weight = 1.15
             else:
                 key_weight = 1.0

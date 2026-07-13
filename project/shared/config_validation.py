@@ -33,7 +33,7 @@ def validate_config(config: Dict[str, Any]) -> List[str]:
         if not isinstance(stages, list):
             errors.append("'stages' must be a list")
         else:
-            valid_stages = {"s1", "s3", "s4", "s5", "s6"}
+            valid_stages = {"s1", "s2", "s3", "s4", "s5", "s6"}
             for stage in stages:
                 if stage not in valid_stages:
                     errors.append(f"Invalid stage '{stage}', must be one of {valid_stages}")

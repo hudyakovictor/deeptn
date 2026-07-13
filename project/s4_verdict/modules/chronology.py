@@ -68,9 +68,9 @@ class ChronologyAnalyzer:
             ],
             key=lambda item: (item[1].date.isoformat(), item[0]),
         )
-        points: list[ChronologyPoint] = []
+        all_points: list[ChronologyPoint] = []
         for photo_id, rec in ordered:
-            points.append(
+            all_points.append(
                 ChronologyPoint(
                     photo_id=photo_id,
                     date=rec.date,
@@ -79,65 +79,87 @@ class ChronologyAnalyzer:
                 )
             )
 
-        if len(points) < 2:
-            return ChronologyResult(points=points, summary_flags=[], anomaly_score=0.0)
+        if len(all_points) < 2:
+            return ChronologyResult(points=all_points, summary_flags=[], anomaly_score=0.0)
 
-        per_metric_series = self._series(stage2_records, ordered)
-        per_photo_scores: dict[str, float] = {p.photo_id: 0.0 for p in points}
-        per_photo_flags: dict[str, Set[str]] = {p.photo_id: set() for p in points}
+        per_photo_scores: dict[str, float] = {p.photo_id: 0.0 for p in all_points}
+        per_photo_flags: dict[str, Set[str]] = {p.photo_id: set() for p in all_points}
 
-        for metric_name, values in per_metric_series.items():
-            if len(values) < 3:
+        # Group by pose_bucket so chronology checks only compare within same bucket
+        bucket_groups: dict[str, list[tuple[str, Stage1Record]]] = {}
+        for photo_id, rec in ordered:
+            bucket = stage2_records[photo_id].bucket.value
+            bucket_groups.setdefault(bucket, []).append((photo_id, rec))
+
+        for bucket, bucket_ordered in bucket_groups.items():
+            if len(bucket_ordered) < 2:
                 continue
-            deltas = np.abs(np.diff(values))
-            baseline = float(np.median(deltas)) + 1e-6
-            robust_scale = float(np.median(np.abs(deltas - baseline)) + 1e-6)
-            age_trend = self._age_trend(points, values)
-            for idx in range(1, len(values)):
-                gap_days = max((points[idx].date - points[idx - 1].date).days if points[idx].date and points[idx - 1].date else 1, 1)
-                rate = float(abs(values[idx] - values[idx - 1]) / gap_days)
-                normalized = rate / max(baseline, 1e-6)
-                if normalized > 2.2:
-                    flag = f"spike:{metric_name}"
-                    per_photo_scores[points[idx].photo_id] += 0.8
-                    per_photo_flags[points[idx].photo_id].add(flag)
-                    per_photo_flags[points[idx - 1].photo_id].add(flag)
-                elif normalized > 1.3:
-                    flag = f"elevated_change:{metric_name}"
-                    per_photo_scores[points[idx].photo_id] += 0.35
-                    per_photo_flags[points[idx].photo_id].add(flag)
 
-                # Age inversion
-                if age_trend and points[idx].age_years is not None and points[idx - 1].age_years is not None:
-                    age_delta = float(points[idx].age_years - points[idx - 1].age_years)
-                    if age_delta > 0:
-                        direction = float(values[idx] - values[idx - 1])
-                        if age_trend["slope"] > 0 and direction < -robust_scale * 0.8:
-                            per_photo_scores[points[idx].photo_id] += 0.45
-                            per_photo_flags[points[idx].photo_id].add(f"age_inversion:{metric_name}")
-                        elif age_trend["slope"] < 0 and direction > robust_scale * 0.8:
-                            per_photo_scores[points[idx].photo_id] += 0.45
-                            per_photo_flags[points[idx].photo_id].add(f"age_inversion:{metric_name}")
+            bucket_points: list[ChronologyPoint] = []
+            for photo_id, rec in bucket_ordered:
+                bucket_points.append(
+                    ChronologyPoint(
+                        photo_id=photo_id,
+                        date=rec.date,
+                        bucket=bucket,
+                        age_years=rec.age_years,
+                    )
+                )
 
-            self._detect_return_to_baseline(metric_name, values, points, per_photo_scores, per_photo_flags)
+            bucket_series = self._series(stage2_records, bucket_ordered)
 
-        # Biological impossibility checks (NEW)
-        self._check_biological_impossibilities(points, per_metric_series, per_photo_scores, per_photo_flags)
+            for metric_name, values in bucket_series.items():
+                if len(values) < 3:
+                    continue
+                deltas = np.abs(np.diff(values))
+                baseline = float(np.median(deltas)) + 1e-6
+                robust_scale = float(np.median(np.abs(deltas - baseline)) + 1e-6)
+                age_trend = self._age_trend(bucket_points, values)
+                for idx in range(1, len(values)):
+                    gap_days = max((bucket_points[idx].date - bucket_points[idx - 1].date).days if bucket_points[idx].date and bucket_points[idx - 1].date else 1, 1)
+                    rate = float(abs(values[idx] - values[idx - 1]) / gap_days)
+                    normalized = rate / max(baseline, 1e-6)
+                    if normalized > 2.2:
+                        flag = f"spike:{metric_name}"
+                        per_photo_scores[bucket_points[idx].photo_id] += 0.8
+                        per_photo_flags[bucket_points[idx].photo_id].add(flag)
+                        per_photo_flags[bucket_points[idx - 1].photo_id].add(flag)
+                    elif normalized > 1.3:
+                        flag = f"elevated_change:{metric_name}"
+                        per_photo_scores[bucket_points[idx].photo_id] += 0.35
+                        per_photo_flags[bucket_points[idx].photo_id].add(flag)
 
-        # Change point detection (ruptures Pelt)
-        self._detect_change_points(points, per_metric_series, per_photo_scores, per_photo_flags)
+                    # Age inversion
+                    if age_trend and bucket_points[idx].age_years is not None and bucket_points[idx - 1].age_years is not None:
+                        age_delta = float(bucket_points[idx].age_years - bucket_points[idx - 1].age_years)
+                        if age_delta > 0:
+                            direction = float(values[idx] - values[idx - 1])
+                            if age_trend["slope"] > 0 and direction < -robust_scale * 0.8:
+                                per_photo_scores[bucket_points[idx].photo_id] += 0.45
+                                per_photo_flags[bucket_points[idx].photo_id].add(f"age_inversion:{metric_name}")
+                            elif age_trend["slope"] < 0 and direction > robust_scale * 0.8:
+                                per_photo_scores[bucket_points[idx].photo_id] += 0.45
+                                per_photo_flags[bucket_points[idx].photo_id].add(f"age_inversion:{metric_name}")
 
-        # Cross-metric return-to-baseline: если geometry + texture одновременно вернулись
-        self._detect_cross_metric_return(points, per_metric_series, per_photo_scores, per_photo_flags)
+                self._detect_return_to_baseline(metric_name, values, bucket_points, per_photo_scores, per_photo_flags)
 
-        for point in points:
+            # Biological impossibility checks (per bucket)
+            self._check_biological_impossibilities(bucket_points, bucket_series, per_photo_scores, per_photo_flags)
+
+            # Change point detection (per bucket)
+            self._detect_change_points(bucket_points, bucket_series, per_photo_scores, per_photo_flags)
+
+            # Cross-metric return-to-baseline (per bucket)
+            self._detect_cross_metric_return(bucket_points, bucket_series, per_photo_scores, per_photo_flags)
+
+        for point in all_points:
             point.chronology_score = float(np.clip(per_photo_scores[point.photo_id], 0.0, 3.0))
             point.flags = sorted(per_photo_flags[point.photo_id])
             point.details["age_years"] = float(point.age_years) if point.age_years is not None else 0.0
 
-        summary_flags = self._summary_flags(points)
-        anomaly_score = float(np.mean([p.chronology_score for p in points]))
-        return ChronologyResult(points=points, summary_flags=summary_flags, anomaly_score=anomaly_score)
+        summary_flags = self._summary_flags(all_points)
+        anomaly_score = float(np.mean([p.chronology_score for p in all_points]))
+        return ChronologyResult(points=all_points, summary_flags=summary_flags, anomaly_score=anomaly_score)
 
     def _age_trend(self, points: list[ChronologyPoint], values: list[float]) -> dict[str, float] | None:
         ages = []
@@ -397,13 +419,13 @@ class ChronologyAnalyzer:
                 # Ищем окно (3 фото), где обе метрики отклоняются > 1.0, а затем возвращаются < 0.3
                 for idx in range(2, min_len - 1):
                     # Проверяем: было отклонение на idx-2..idx-1
-                    g_was偏离 = np.mean(np.abs(g_norm[idx-2:idx])) > 1.0
-                    t_was偏离 = np.mean(np.abs(t_norm[idx-2:idx])) > 1.0
+                    g_was_deviated = np.mean(np.abs(g_norm[idx-2:idx])) > 1.0
+                    t_was_deviated = np.mean(np.abs(t_norm[idx-2:idx])) > 1.0
                     # Проверяем: вернулось к baseline на idx
                     g_returned = abs(g_norm[idx]) < 0.3
                     t_returned = abs(t_norm[idx]) < 0.3
 
-                    if g_was偏离 and t_was偏离 and g_returned and t_returned:
+                    if g_was_deviated and t_was_deviated and g_returned and t_returned:
                         photo_id = points[idx].photo_id
                         per_photo_scores[photo_id] += 0.7
                         per_photo_flags[photo_id].add(f"CROSS_RETURN:{g_name}+{t_name}")

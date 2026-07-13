@@ -153,7 +153,21 @@ def build_metric_context(
     yaw = float(angles[1]) if len(angles) > 1 else 0.0
     roll = float(angles[2]) if len(angles) > 2 else 0.0
     vertices_raw = np.asarray(_get(reconstruction, "vertices_world"), dtype=float)
-    vertices_canon = vertices_raw.copy()
+    # Canonicalize vertices to bucket pose (pitch=0, roll=0, yaw=target)
+    try:
+        from .....modules.alignment import canonicalize_vertices_for_bucket, _CANONICAL_YAW_BY_VIEW_GROUP
+        rot_matrix = _get(reconstruction, "rotation_matrix", None)
+        trans = _get(reconstruction, "translation", None)
+        target_yaw = float(_CANONICAL_YAW_BY_VIEW_GROUP.get(pose_bucket, 0.0))
+        print(f"[Canon] {photo_id}: yaw={yaw:.1f}° pitch={pitch:.1f}° roll={roll:.1f}° bucket={pose_bucket} -> target_yaw={target_yaw:.1f}° target_pitch=0° target_roll=0°", flush=True)
+        vertices_canon = canonicalize_vertices_for_bucket(
+            vertices_raw, angles, pose_bucket,
+            rotation_matrix_applied=rot_matrix,
+            translation=trans,
+        )
+    except Exception as exc:
+        print(f"[Canon] {photo_id}: canonicalization failed ({exc}), using raw", flush=True)
+        vertices_canon = vertices_raw.copy()
 
     vertices_shape_neutral = _neutral_shape(adapter, reconstruction) if adapter is not None else None
     visibility_raw = _get(reconstruction, "visibility", None)
