@@ -1,0 +1,38 @@
+{
+  "frontal": {
+    "min": -6,
+    "max": 6
+  },
+  "left_profile": {
+    "min": -180,
+    "max": -65
+  },
+  "left_threequarter_deep": {
+    "min": -65,
+    "max": -45
+  },
+  "left_threequarter_mid": {
+    "min": -45,
+    "max": -25
+  },
+  "left_threequarter_light": {
+    "min": -25,
+    "max": -6
+  },
+  "right_profile": {
+    "min": 65,
+    "max": 180
+  },
+  "right_threequarter_deep": {
+    "min": 45,
+    "max": 65
+  },
+  "right_threequarter_mid": {
+    "min": 25,
+    "max": 45
+  },
+  "right_threequarter_light": {
+    "min": 6,
+    "max": 25
+  }
+}

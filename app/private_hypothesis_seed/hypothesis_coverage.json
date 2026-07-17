@@ -1,0 +1,13 @@
+{
+  "schema": "deeputin-private-hypothesis-coverage-v1.0",
+  "source_count": 16,
+  "available_source_count": 16,
+  "source_record_count": 6223,
+  "imported_record_count": 6223,
+  "coverage_fraction": 1.0,
+  "current_pair_count": 0,
+  "current_metric_registry_count": 100,
+  "retested_count": 0,
+  "pending_count": 6223,
+  "coverage_claim": "lossless_import_of_available_hypothesis_records"
+}

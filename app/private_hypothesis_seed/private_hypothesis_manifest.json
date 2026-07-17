@@ -1,0 +1,265 @@
+{
+  "schema": "deeputin-private-hypothesis-retest-v1.0",
+  "created_at_utc": "2026-07-17T05:39:43Z",
+  "privacy": "private_hypothesis_layer_not_in_public_stage3",
+  "status": "complete",
+  "minimum_import_coverage": 0.95,
+  "source_record_count": 6223,
+  "imported_record_count": 6223,
+  "import_coverage_fraction": 1.0,
+  "retested_with_current_alignment_count": 0,
+  "pending_missing_current_data_count": 6223,
+  "hypothesis_family_count": 18,
+  "hypothesis_families": [
+    {
+      "id": "H0_same_technical_consistency",
+      "label": "same-subject technical consistency",
+      "channel": "geometry+texture+chronology"
+    },
+    {
+      "id": "H1_synthetic_texture_candidate",
+      "label": "synthetic/retouch texture candidate",
+      "channel": "texture+quality"
+    },
+    {
+      "id": "H2_different_geometry_candidate",
+      "label": "different-geometry candidate",
+      "channel": "identity-only geometry"
+    },
+    {
+      "id": "H_uncertain",
+      "label": "insufficient or conflicting evidence",
+      "channel": "quality+calibration"
+    },
+    {
+      "id": "biological_corridor",
+      "label": "longitudinal technical corridor",
+      "channel": "chronology"
+    },
+    {
+      "id": "shape_return_A_B_A",
+      "label": "A-B-A baseline return",
+      "channel": "motion"
+    },
+    {
+      "id": "change_point",
+      "label": "calibrated change point",
+      "channel": "chronology"
+    },
+    {
+      "id": "rapid_change",
+      "label": "rapid change candidate",
+      "channel": "chronology"
+    },
+    {
+      "id": "frozen_face",
+      "label": "unusually low variation candidate",
+      "channel": "geometry+expression"
+    },
+    {
+      "id": "face_version_cluster",
+      "label": "stepwise technical cluster",
+      "channel": "geometry+texture"
+    },
+    {
+      "id": "timeline_alternation",
+      "label": "alternating technical clusters",
+      "channel": "chronology"
+    },
+    {
+      "id": "regional_age_desynchronization",
+      "label": "regional temporal desynchronization",
+      "channel": "texture+geometry"
+    },
+    {
+      "id": "anatomy_consistency",
+      "label": "cross-zone consistency",
+      "channel": "geometry"
+    },
+    {
+      "id": "zero_baseline_return",
+      "label": "reference baseline return",
+      "channel": "motion"
+    },
+    {
+      "id": "singular_date",
+      "label": "multi-channel singular date",
+      "channel": "corroboration"
+    },
+    {
+      "id": "cross_bucket_consensus",
+      "label": "independent pose-bin support",
+      "channel": "corroboration"
+    },
+    {
+      "id": "struct_texture_divergence",
+      "label": "structure-texture divergence",
+      "channel": "geometry+texture"
+    },
+    {
+      "id": "morphing_candidate",
+      "label": "morphing/transition artifact candidate",
+      "channel": "texture+geometry+quality"
+    }
+  ],
+  "legacy_alignment": {
+    "model_version": "fuzzy-bayes-v2.0.0-forensic",
+    "reference_use_mesh_alignment": false,
+    "mesh_config_hash": "40fd86c2d628a507"
+  },
+  "current_alignment_policy": "iteratively_trimmed_kabsch_v1_no_scale",
+  "range_policy": "All legacy thresholds, posteriors and numeric ranges are historical only. Current ranges must be re-estimated from current calibration after the alignment change.",
+  "source_reports": [
+    {
+      "source": "hypothesis_explanations",
+      "path": "final_inference/hypothesis_explanations.json",
+      "status": "imported",
+      "record_count": 1912,
+      "imported_count": 1912,
+      "retested_count": 0,
+      "sha256": "00e7d189ed57d33ad79edbd64612487c857f4b5fe6a1951d27849219fcb8a2e6"
+    },
+    {
+      "source": "photo_forensic_verdicts",
+      "path": "final_inference/photo_forensic_verdicts.json",
+      "status": "imported",
+      "record_count": 1912,
+      "imported_count": 1912,
+      "retested_count": 0,
+      "sha256": "cea10ce96ff326745719aa3b032626d8d83fb8021a94675b4848c681a9c19206"
+    },
+    {
+      "source": "chronology_events",
+      "path": "final_inference/chronology_events.json",
+      "status": "imported",
+      "record_count": 1654,
+      "imported_count": 1654,
+      "retested_count": 0,
+      "sha256": "22a2a89c936116b97933b56f0cda80585f6147a12f54e7216710e48330d7b825"
+    },
+    {
+      "source": "top_hypothesis_breaks",
+      "path": "final_inference/top_hypothesis_breaks.json",
+      "status": "imported",
+      "record_count": 150,
+      "imported_count": 150,
+      "retested_count": 0,
+      "sha256": "7a1e10b1699b53bac47d183df84605cd91888f14d380070460c5f332d8aff05b"
+    },
+    {
+      "source": "top_identity_breaks",
+      "path": "final_inference/top_identity_breaks.json",
+      "status": "imported",
+      "record_count": 80,
+      "imported_count": 80,
+      "retested_count": 0,
+      "sha256": "74bd5cb21cd69cd7e0fcdd559444c67d54ae8506d763ecfd98f6a5744e3c6ed6"
+    },
+    {
+      "source": "top_evidence_packets",
+      "path": "final_inference/top_evidence_packets.json",
+      "status": "imported",
+      "record_count": 40,
+      "imported_count": 40,
+      "retested_count": 0,
+      "sha256": "bb14e4c6b344a5a9946900eebe72562e8831de1182d0cad6c4162ab9d3d11923"
+    },
+    {
+      "source": "canonical_anomaly_index",
+      "path": "final_inference/canonical_anomaly_index.json",
+      "status": "imported",
+      "record_count": 225,
+      "imported_count": 225,
+      "retested_count": 0,
+      "sha256": "8130e0da1c8a23888035ea94342741e3be0513d55d8a92e591b71790cc2ba015"
+    },
+    {
+      "source": "cross_bucket_consensus",
+      "path": "final_inference/cross_bucket_consensus.json",
+      "status": "imported",
+      "record_count": 230,
+      "imported_count": 230,
+      "retested_count": 0,
+      "sha256": "5b63bf1efbec2304dad36688e424731d39c75e8f9f68ad8c9a01ebe232d49876"
+    },
+    {
+      "source": "h0_contradictions",
+      "path": "final_inference/h0_contradictions.json",
+      "status": "imported",
+      "record_count": 1,
+      "imported_count": 1,
+      "retested_count": 0,
+      "sha256": "fd16ec591c4f02fc7b7103bcff42db318acae5e0681bb8bdd4ab6da7b8c04fed"
+    },
+    {
+      "source": "morphing_candidates",
+      "path": "final_inference/morphing_candidates.json",
+      "status": "imported",
+      "record_count": 1,
+      "imported_count": 1,
+      "retested_count": 0,
+      "sha256": "0a624d5195205077242cff819596cbd12885afd78a552140fe76d9eb01c091a0"
+    },
+    {
+      "source": "era_breakpoints",
+      "path": "final_inference/era_breakpoints.json",
+      "status": "imported",
+      "record_count": 5,
+      "imported_count": 5,
+      "retested_count": 0,
+      "sha256": "a6856d274d82a3341f233656d9cc7841e86b8a9d3263c0c61864f038d3fe7ea6"
+    },
+    {
+      "source": "bucket_consistency",
+      "path": "final_inference/bucket_consistency_report.json",
+      "status": "imported",
+      "record_count": 9,
+      "imported_count": 9,
+      "retested_count": 0,
+      "sha256": "0178af8ea57a67c445c5a74d2d4ba2fbf829598ce6297fa4441b24a801eb5b58"
+    },
+    {
+      "source": "texture_natural_baseline",
+      "path": "final_inference/texture_natural_baseline.json",
+      "status": "imported",
+      "record_count": 1,
+      "imported_count": 1,
+      "retested_count": 0,
+      "sha256": "90ea0df93090a7de24e241b27ae1c53501efa3bc28cb11d0e4072f6be22520b2"
+    },
+    {
+      "source": "mesh_noise_reduction",
+      "path": "final_inference/mesh_noise_reduction_report.json",
+      "status": "imported",
+      "record_count": 1,
+      "imported_count": 1,
+      "retested_count": 0,
+      "sha256": "27ad54244247e177f8766e3150553bec3769ceae797ca460b10b2ee28467bf7f"
+    },
+    {
+      "source": "calibration_health",
+      "path": "final_inference/calibration_health_report.json",
+      "status": "imported",
+      "record_count": 1,
+      "imported_count": 1,
+      "retested_count": 0,
+      "sha256": "757fa60d5e7defb2ff8f28992c3da32c7f20be48e15b0c4ac42cdc049339d1f1"
+    },
+    {
+      "source": "metric_coverage",
+      "path": "final_inference/metric_coverage_matrix.json",
+      "status": "imported",
+      "record_count": 1,
+      "imported_count": 1,
+      "retested_count": 0,
+      "sha256": "e78d900f866b3a6f4ebcca00f405045b908dd3e984da2a9cc54a1769f8e5d8ee"
+    }
+  ],
+  "outputs": [
+    "legacy_hypothesis_ledger.jsonl",
+    "hypothesis_retest_results.jsonl",
+    "private_hypothesis_manifest.json",
+    "hypothesis_coverage.json"
+  ],
+  "interpretation_boundary": "Technical retest only; no automatic identity, mask, surgery, material, or medical conclusion."
+}

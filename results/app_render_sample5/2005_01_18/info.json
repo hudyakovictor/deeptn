@@ -1,0 +1,231 @@
+{
+  "camera": {
+    "camera_distance": 10.0,
+    "focal": 1015.0,
+    "principal_point": [
+      112.0,
+      112.0
+    ],
+    "projection": "perspective",
+    "render_size": [
+      224,
+      224
+    ]
+  },
+  "code_hash": "b65caf58c1ff9d5aa1e13619d08e038668cbfbbb6655f08df6f2397fae677669",
+  "config_hash": "6223037b0f8df7f138e730497d892c097ace1292df8b685b064e32d8188e634e",
+  "crop": {
+    "bbox_original": [
+      46,
+      211,
+      523,
+      538
+    ],
+    "crop_source": "ldm106_projection",
+    "letterbox": {
+      "content_height": 436,
+      "content_width": 424,
+      "offset_x": 0,
+      "offset_y": 32,
+      "scale": 0.8107074569789675
+    }
+  },
+  "date": "2005-01-18",
+  "date_day": 18,
+  "date_month": 1,
+  "date_year": 2005,
+  "extraction_timestamp": "2026-07-17T15:28:37Z",
+  "files": {
+    "face_crop": "face_crop.jpg",
+    "face_mask": "face_mask.png",
+    "face_mask_data": "face_mask.npz",
+    "ldm106_aligned": "ldm106_aligned.csv",
+    "ldm106_raw": "ldm106_raw.csv",
+    "ldm134_aligned": "ldm134_aligned.csv",
+    "ldm134_raw": "ldm134_raw.csv",
+    "morphing_mesh": "mesh.obj",
+    "morphing_mesh_material": "mesh.mtl",
+    "original": "original.jpg",
+    "quality": "quality.json",
+    "quality_zones": "quality_zones.npz",
+    "reconstruction": "reconstruction.npz",
+    "semantic_channels": "semantic_channels.npz",
+    "thumbnail": "thumb.jpg",
+    "uv_confidence": "uv_confidence.png",
+    "uv_data": "uv.npz",
+    "uv_observed_texture": "uv_observed_texture.png",
+    "uv_texture": "uv_texture.png"
+  },
+  "image": {
+    "extension": ".jpg",
+    "height": 800,
+    "width": 800
+  },
+  "landmark_contract": {
+    "aligned": "full-mesh RMS normalized then pose-bin canonical yaw",
+    "raw": "object identity+expression"
+  },
+  "mask": {
+    "channel_area_fraction_224": {
+      "left_eye": 0.0029894770408163264,
+      "left_eyebrow": 0.00980548469387755,
+      "lower_lip": 0.0031489158163265306,
+      "nose": 0.02184311224489796,
+      "right_eye": 0.0,
+      "right_eyebrow": 0.0005580357142857143,
+      "skin": 0.35536910076530615,
+      "upper_lip": 0.0012157206632653062
+    },
+    "channel_names": [
+      "right_eye",
+      "left_eye",
+      "right_eyebrow",
+      "left_eyebrow",
+      "nose",
+      "upper_lip",
+      "lower_lip",
+      "skin"
+    ],
+    "error": null,
+    "fallback_used": false,
+    "hard_area_fraction_224": 0.3772122130102041,
+    "hard_area_fraction_original": 0.1677109375,
+    "policy": "3ddfa-semantic-skin-plus-nose-v1",
+    "soft_area_fraction_224": 0.3772122130102041,
+    "soft_area_fraction_original": 0.171559375,
+    "status": "valid"
+  },
+  "mesh_contract": {
+    "analysis_npz": "reconstruction.npz analysis_mesh_* arrays contain the visibility-cut compact mesh; full arrays remain for correspondence compatibility",
+    "morphing": "mesh.obj keeps the complete fixed topology and uses a hole-free visual UV texture",
+    "synthetic_texture_policy": "completed UV pixels are display/morphing only and never count as observed evidence"
+  },
+  "model_hash": "b648acd7a8da170ec9a5b84d7df86d2129b6a67283c9453e634872c66216c924",
+  "normalization": {
+    "center": [
+      -0.007494667544960976,
+      0.02634098008275032,
+      0.01101165171712637
+    ],
+    "method": "full_mesh_rms_v1",
+    "scale": 0.5904462933540344
+  },
+  "photo_id": "2005_01_18",
+  "pose": {
+    "canonical_yaw": -70.0,
+    "pitch": 20.05532455444336,
+    "pose_bin": "left_profile",
+    "roll": -22.4151554107666,
+    "yaw": -64.27272033691406
+  },
+  "quality_inputs": {
+    "combined_visible_fraction": 0.49169677112212606,
+    "face_bbox_area_ratio": 0.439646875,
+    "face_bbox_height": 538,
+    "face_bbox_width": 523,
+    "gradient_anisotropy": 1.305866845043462,
+    "laplacian_variance": 314.0983695189273,
+    "noise_residual_mean": 2.6558494567871094,
+    "skin_mask_coverage": 0.1677109375,
+    "tenengrad_mean": 1802.2939575085118,
+    "uv_observed_coverage": 0.4169633653428819
+  },
+  "quality_summary": {
+    "created_at_utc": "2026-07-17T15:28:36Z",
+    "files": {
+      "quality_zones": "quality_zones.npz"
+    },
+    "global_texture_quality": {
+      "status": "usable",
+      "texture_score_0_1": 0.9644830226898193
+    },
+    "mask_quality": {
+      "skin_coverage_original": 0.1677109375,
+      "skin_pixels_original": 107335,
+      "status": "ok"
+    },
+    "per_zone_quality": {
+      "forehead_L": {
+        "highlight_fraction": 0.0,
+        "laplacian_var": 302.96392822265625,
+        "quality_class": "unsupported_pose",
+        "roi_source": "landmark_skin_fallback_pending_mesh_projection",
+        "shadow_fraction": 0.0,
+        "skin_fraction": 1.0,
+        "tenengrad_mean": 1343.8184814453125,
+        "texture_pixels": 9399,
+        "texture_score_0_1": 0.9196189641952515,
+        "texture_usable": false,
+        "visible_fraction": 0.0
+      },
+      "forehead_R": {
+        "highlight_fraction": 0.0,
+        "laplacian_var": 574.2963256835938,
+        "quality_class": "unsupported_pose",
+        "roi_source": "landmark_skin_fallback_pending_mesh_projection",
+        "shadow_fraction": 0.0,
+        "skin_fraction": 1.0,
+        "tenengrad_mean": 2660.2880859375,
+        "texture_pixels": 12681,
+        "texture_score_0_1": 1.0,
+        "texture_usable": false,
+        "visible_fraction": 0.0
+      },
+      "forehead_center": {
+        "highlight_fraction": 0.0,
+        "laplacian_var": 400.7424621582031,
+        "quality_class": "unsupported_pose",
+        "roi_source": "landmark_skin_fallback_pending_mesh_projection",
+        "shadow_fraction": 0.0,
+        "skin_fraction": 1.0,
+        "tenengrad_mean": 1442.48681640625,
+        "texture_pixels": 18480,
+        "texture_score_0_1": 0.9644830226898193,
+        "texture_usable": false,
+        "visible_fraction": 0.0
+      }
+    },
+    "photo_id": "2005_01_18",
+    "pose": {
+      "canonical_yaw": -70.0,
+      "pitch": 20.05532455444336,
+      "pose_bin": "left_profile",
+      "roll": -22.4151554107666,
+      "yaw": -64.27272033691406
+    },
+    "schema_version": "deeputin-quality-v1.0",
+    "status": "complete",
+    "supported_forehead_wrinkle_pose_v1": false,
+    "warnings": [
+      "forehead_wrinkle_v1_unsupported_pose"
+    ]
+  },
+  "reprojection": {
+    "ldm106_224": {
+      "max": 0.0,
+      "p95": 0.0,
+      "rmse": 0.0
+    },
+    "ldm134_224": {
+      "max": 0.0,
+      "p95": 0.0,
+      "rmse": 0.0
+    }
+  },
+  "same_date_sequence": 1,
+  "schema_version": "deeputin-photo-v2.2",
+  "source_filename": "2005_01_18.jpg",
+  "source_relative_path": "2005_01_18.jpg",
+  "source_sha256": "0042b13a8b2966b37352242a6e85d0ec5f96c40c17a226348a5cc16954dfcceb",
+  "uv": {
+    "confidence_semantics": "uv_confidence.png is a soft grayscale preview; exact confidence remains 0..1 in uv.npz",
+    "mean_confidence_observed": 0.3105226159095764,
+    "observed_coverage": 0.4169633653428819,
+    "original_coverage": 0.4169633653428819,
+    "status": "valid",
+    "synthetic_texture_fraction": 0.3823666042751736,
+    "texture_semantics": "uv_texture.png is hole-free for morphing/display; uv_observed_texture.png and scientific masks preserve the raw observed projection",
+    "valid_coverage": 0.0021565755208333335,
+    "valid_threshold": 0.5
+  }
+}

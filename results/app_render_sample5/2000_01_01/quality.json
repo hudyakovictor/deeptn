@@ -1,0 +1,68 @@
+{
+  "created_at_utc": "2026-07-17T15:28:32Z",
+  "files": {
+    "quality_zones": "quality_zones.npz"
+  },
+  "global_texture_quality": {
+    "status": "usable",
+    "texture_score_0_1": 0.9995383024215698
+  },
+  "mask_quality": {
+    "skin_coverage_original": 0.29195488721804513,
+    "skin_pixels_original": 186384,
+    "status": "ok"
+  },
+  "per_zone_quality": {
+    "forehead_L": {
+      "highlight_fraction": 0.0,
+      "laplacian_var": 332.39031982421875,
+      "quality_class": "good",
+      "roi_source": "landmark_skin_fallback_pending_mesh_projection",
+      "shadow_fraction": 3.9864462451078e-05,
+      "skin_fraction": 1.0,
+      "tenengrad_mean": 1925.845703125,
+      "texture_pixels": 25085,
+      "texture_score_0_1": 0.9343938231468201,
+      "texture_usable": true,
+      "visible_fraction": 0.8999999761581421
+    },
+    "forehead_R": {
+      "highlight_fraction": 0.0,
+      "laplacian_var": 1082.65283203125,
+      "quality_class": "good",
+      "roi_source": "landmark_skin_fallback_pending_mesh_projection",
+      "shadow_fraction": 9.835742821451277e-05,
+      "skin_fraction": 1.0,
+      "tenengrad_mean": 4799.712890625,
+      "texture_pixels": 20334,
+      "texture_score_0_1": 0.9997639656066895,
+      "texture_usable": true,
+      "visible_fraction": 0.550000011920929
+    },
+    "forehead_center": {
+      "highlight_fraction": 3.766336521948688e-05,
+      "laplacian_var": 498.8448181152344,
+      "quality_class": "good",
+      "roi_source": "landmark_skin_fallback_pending_mesh_projection",
+      "shadow_fraction": 0.0,
+      "skin_fraction": 1.0,
+      "tenengrad_mean": 2317.422607421875,
+      "texture_pixels": 26551,
+      "texture_score_0_1": 0.9995383024215698,
+      "texture_usable": true,
+      "visible_fraction": 0.8999999761581421
+    }
+  },
+  "photo_id": "2000_01_01",
+  "pose": {
+    "canonical_yaw": -17.5,
+    "pitch": 25.197837829589844,
+    "pose_bin": "left_light",
+    "roll": -11.20884895324707,
+    "yaw": -11.982656478881836
+  },
+  "schema_version": "deeputin-quality-v1.0",
+  "status": "complete",
+  "supported_forehead_wrinkle_pose_v1": true,
+  "warnings": []
+}

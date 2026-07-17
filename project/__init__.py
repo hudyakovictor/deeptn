@@ -1,1 +1,0 @@
-"""DEEPUTIN: forensic photo pipeline."""

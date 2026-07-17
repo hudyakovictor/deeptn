@@ -1,0 +1,28 @@
+{
+  "backbone": "resnet50",
+  "code_hash": "b65caf58c1ff9d5aa1e13619d08e038668cbfbbb6655f08df6f2397fae677669",
+  "config_hash": "6223037b0f8df7f138e730497d892c097ace1292df8b685b064e32d8188e634e",
+  "created_at_utc": "2026-07-17T15:28:46Z",
+  "detector": "retinaface",
+  "device": "cpu",
+  "elapsed_seconds": 22.743916749954224,
+  "error_count": 0,
+  "input_count": 5,
+  "input_dir": "/Users/victorkhudyakov/myproject/dataset/_sample5",
+  "model_hash": "b648acd7a8da170ec9a5b84d7df86d2129b6a67283c9453e634872c66216c924",
+  "output_dir": "/Users/victorkhudyakov/myproject/results/app_render_sample5",
+  "runtime": {
+    "executable": "/opt/homebrew/Caskroom/miniconda/base/envs/deeputin/bin/python",
+    "numpy": "1.26.4",
+    "opencv": "5.0.0",
+    "pillow": "12.3.0",
+    "platform": "macOS-15.2-arm64-arm-64bit",
+    "python": "3.10.20",
+    "torch": "1.12.1"
+  },
+  "schema_version": "deeputin-stage1-v2.2",
+  "skipped_valid_count": 0,
+  "status": "complete",
+  "success_count": 5,
+  "uv_size": 768
+}

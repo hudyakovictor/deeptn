@@ -1,0 +1,1817 @@
+{
+  "schema": "deeputin-100-metric-pipeline-audit-v1.0",
+  "status": "pass",
+  "analysis_count": 100,
+  "passed": 100,
+  "failed": 0,
+  "registry_errors": [],
+  "transport_layers": [
+    "producer",
+    "pair_metrics.csv",
+    "evidence_packet",
+    "metric_catalog",
+    "stage3_report_data"
+  ],
+  "analyses": [
+    {
+      "analysis_id": "A001",
+      "metric": "pair_index",
+      "family": "pair",
+      "requires": "stage1_metadata",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A002",
+      "metric": "days_delta",
+      "family": "pair",
+      "requires": "stage1_metadata",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A003",
+      "metric": "same_day",
+      "family": "pair",
+      "requires": "stage1_metadata",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A004",
+      "metric": "pose_distance",
+      "family": "pair",
+      "requires": "stage1_metadata",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A005",
+      "metric": "common_visible106",
+      "family": "pair",
+      "requires": "stage1_metadata",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A006",
+      "metric": "common_visible134",
+      "family": "pair",
+      "requires": "stage1_metadata",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A007",
+      "metric": "coverage106",
+      "family": "pair",
+      "requires": "stage1_metadata",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A008",
+      "metric": "coverage134",
+      "family": "pair",
+      "requires": "stage1_metadata",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A009",
+      "metric": "matched_calibration_sets",
+      "family": "pair",
+      "requires": "stage1_metadata",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A010",
+      "metric": "primary_robust_z",
+      "family": "pair",
+      "requires": "stage1_metadata",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A011",
+      "metric": "primary_calibration_p95",
+      "family": "pair",
+      "requires": "stage1_metadata",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A012",
+      "metric": "cross_bin_support_pose_count",
+      "family": "pair",
+      "requires": "stage1_metadata",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A013",
+      "metric": "cross_bin_independent_source_count",
+      "family": "pair",
+      "requires": "stage1_metadata",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A014",
+      "metric": "chronology_rate_z",
+      "family": "pair",
+      "requires": "stage1_metadata",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A015",
+      "metric": "biological_rate_z",
+      "family": "pair",
+      "requires": "stage1_metadata",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A016",
+      "metric": "quality_texture_score_a",
+      "family": "quality",
+      "requires": "stage1_quality",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A017",
+      "metric": "quality_texture_score_b",
+      "family": "quality",
+      "requires": "stage1_quality",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A018",
+      "metric": "quality_zone_common_count",
+      "family": "quality",
+      "requires": "stage1_quality",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A019",
+      "metric": "quality_zone_usable_common_count",
+      "family": "quality",
+      "requires": "stage1_quality",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A020",
+      "metric": "quality_zone_usable_common",
+      "family": "quality",
+      "requires": "stage1_quality",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A021",
+      "metric": "quality_zone_pair_limited",
+      "family": "quality",
+      "requires": "stage1_quality",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A022",
+      "metric": "quality_limited",
+      "family": "quality",
+      "requires": "stage1_quality",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A023",
+      "metric": "forehead_wrinkle_supported_a",
+      "family": "quality",
+      "requires": "stage1_quality",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A024",
+      "metric": "forehead_wrinkle_supported_b",
+      "family": "quality",
+      "requires": "stage1_quality",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A025",
+      "metric": "expression_influence",
+      "family": "quality",
+      "requires": "stage1_quality",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A026",
+      "metric": "ldm106_rmse",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A027",
+      "metric": "ldm106_median",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A028",
+      "metric": "ldm106_p95",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A029",
+      "metric": "ldm106_max",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A030",
+      "metric": "ldm134_rmse",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A031",
+      "metric": "ldm134_median",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A032",
+      "metric": "ldm134_p95",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A033",
+      "metric": "ldm134_max",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A034",
+      "metric": "identity_only_ldm134_rmse",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A035",
+      "metric": "identity_only_motion_rmse",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A036",
+      "metric": "ldm106_anchor_count",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A037",
+      "metric": "ldm134_anchor_count",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A038",
+      "metric": "alignment106_trimmed_count",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A039",
+      "metric": "ldm134_alignment_trimmed_count",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A040",
+      "metric": "alignment134_residual_before_median",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A041",
+      "metric": "alignment134_residual_after_median",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A042",
+      "metric": "significant_point_count",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A043",
+      "metric": "significant_point_fraction",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A044",
+      "metric": "coherent_motion_fraction",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A045",
+      "metric": "median_point_z",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A046",
+      "metric": "p95_point_z",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A047",
+      "metric": "alpha_id_l2",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A048",
+      "metric": "alpha_exp_l2",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A049",
+      "metric": "alpha_id_robust_z",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A050",
+      "metric": "alpha_exp_robust_z",
+      "family": "landmark",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A051",
+      "metric": "descriptor_significant_fraction",
+      "family": "descriptor",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A052",
+      "metric": "descriptor_landmark_fraction",
+      "family": "descriptor",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A053",
+      "metric": "descriptor_p95_z",
+      "family": "descriptor",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A054",
+      "metric": "baseline_return_opposite_fraction",
+      "family": "descriptor",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A055",
+      "metric": "baseline_return_median_cosine",
+      "family": "descriptor",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A056",
+      "metric": "baseline_return_magnitude_ratio",
+      "family": "descriptor",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A057",
+      "metric": "baseline_return_common_vector_count",
+      "family": "descriptor",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A058",
+      "metric": "cross_bin_support_count",
+      "family": "descriptor",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A059",
+      "metric": "descriptor_top_families",
+      "family": "descriptor",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A060",
+      "metric": "descriptor_top_counts",
+      "family": "descriptor",
+      "requires": "stage1_landmarks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A061",
+      "metric": "mesh_common_vertex_count",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A062",
+      "metric": "mesh_visible_fraction",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A063",
+      "metric": "mesh_rmse",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A064",
+      "metric": "mesh_median",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A065",
+      "metric": "mesh_p95",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A066",
+      "metric": "mesh_fit_vertex_count",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A067",
+      "metric": "mesh_point_to_plane_rmse",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A068",
+      "metric": "mesh_point_to_plane_median",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A069",
+      "metric": "mesh_point_to_plane_p95",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A070",
+      "metric": "mesh_point_to_plane_signed_median",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A071",
+      "metric": "mesh_alignment_residual_before_median",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A072",
+      "metric": "mesh_alignment_residual_after_median",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A073",
+      "metric": "mesh_anatomical_zone_count",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A074",
+      "metric": "mesh_anchor_fraction",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A075",
+      "metric": "mesh_alignment_trimmed_count",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A076",
+      "metric": "mesh_max_robust_z",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A077",
+      "metric": "mesh_calibrated_elevated_count",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A078",
+      "metric": "mesh_calibrated_metric_count",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A079",
+      "metric": "mesh_shape_linearity",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A080",
+      "metric": "mesh_shape_planarity",
+      "family": "mesh",
+      "requires": "stage1_dense_mesh",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A081",
+      "metric": "texture_image_zone_count",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A082",
+      "metric": "texture_image_usable_zone_count",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A083",
+      "metric": "texture_image_max_laplacian_delta",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A084",
+      "metric": "texture_image_max_gradient_delta",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A085",
+      "metric": "texture_image_max_lbp_chi2",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A086",
+      "metric": "texture_image_max_glcm_contrast_delta",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A087",
+      "metric": "texture_image_max_high_frequency_delta",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A088",
+      "metric": "texture_image_max_entropy_delta",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A089",
+      "metric": "texture_image_max_gabor_delta",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A090",
+      "metric": "texture_structure_registered_zone_count",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A091",
+      "metric": "texture_structure_max_ridge_delta",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A092",
+      "metric": "texture_structure_min_registered_ssim",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A093",
+      "metric": "quality_zone_count",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A094",
+      "metric": "usable_texture_zone_count",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A095",
+      "metric": "min_usable_texture_score",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A096",
+      "metric": "min_usable_texture_pixels",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A097",
+      "metric": "texture_image_schema",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A098",
+      "metric": "texture_pair_status",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A099",
+      "metric": "texture_image_backend",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    },
+    {
+      "analysis_id": "A100",
+      "metric": "texture_image_status",
+      "family": "texture",
+      "requires": "stage1_image_and_quality_masks",
+      "checks": {
+        "canonical_snake_case": true,
+        "unique_registry_name": true,
+        "producer_declared": true,
+        "evidence_transport": true,
+        "csv_transport": true,
+        "catalog_transport": true,
+        "stage3_pair_transport": true,
+        "stage3_catalog_transport": true
+      },
+      "status": "pass",
+      "failed_checks": []
+    }
+  ]
+}

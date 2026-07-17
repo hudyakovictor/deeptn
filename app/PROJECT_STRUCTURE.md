@@ -1,0 +1,133 @@
+# app6 project structure
+
+```text
+AUDIT_EXECUTION_V1_7.md
+AUDIT_IDEAS_V1_6.md
+AUDIT_INTEGRATION.md
+PRIVATE_HYPOTHESIS_LAYER.md
+QA_REPORT.md
+README.md
+STAGE2_SPEC.md
+__init__.py
+artifacts/
+  workbench/
+    cache/
+      .gitkeep
+    runs/
+      .gitkeep
+config/
+  workbench_presets/
+    README.md
+docs/
+  workbench/
+    README.md
+private_hypothesis_seed/
+  README_PRIVATE.md
+  hypothesis_coverage.json
+  hypothesis_retest_results.jsonl
+  legacy_hypothesis_ledger.jsonl
+  private_hypothesis_manifest.json
+qa_100_metrics/
+  AUDIT_100_METRICS.md
+  audit_100_metric_pipeline.json
+run_private_hypotheses.py
+run_stage1.py
+run_stage2.py
+run_stage2b.py
+run_stage3.py
+schemas/
+  workbench_generated/
+    .gitkeep
+scripts/
+  audit_100_metric_pipeline.py
+  run_all_tests.sh
+stage1/
+  __init__.py
+  assets.py
+  config.py
+  engine.py
+  geometry.py
+  masks.py
+  naming.py
+  quality_zones.py
+  reconstruction.py
+  storage.py
+  utils.py
+  validator.py
+stage2/
+  __init__.py
+  alpha_chronology.py
+  anchor_policy.py
+  baseline_return.py
+  calibration.py
+  calibration_sensitivity.py
+  chronology.py
+  core.py
+  corroboration.py
+  descriptors.py
+  engine.py
+  evidence.py
+  leads.py
+  loaders.py
+  mesh_calibration.py
+  mesh_dense.py
+  mesh_zone_indices.json
+  metric_registry.py
+  motion.py
+  multiple_testing.py
+  pose_leakage.py
+  postprocess_reports.py
+  private_hypothesis.py
+  quality_integration.py
+  technical_summary.py
+  texture_image.py
+  texture_pair.py
+  texture_structure.py
+  workbench/
+    __init__.py
+    core/
+      __init__.py
+      contracts.py
+      dag.py
+      preview.py
+    pipeline/
+      __init__.py
+      evidence_analysis.py
+      quality_calibration.py
+      release.py
+    recommendation/
+      __init__.py
+      engine.py
+stage2b/
+  __init__.py
+  engine.py
+stage3/
+  __init__.py
+  engine.py
+tests/
+  __init__.py
+  test_chronology.py
+  test_descriptors.py
+  test_geometry.py
+  test_leads.py
+  test_masks.py
+  test_metric_registry.py
+  test_naming.py
+  test_pose_leakage.py
+  test_private_hypothesis.py
+  test_robust_and_corroboration.py
+  test_storage.py
+  test_texture_image.py
+  test_texture_structure.py
+  test_validator.py
+  workbench/
+    __init__.py
+    integration/
+      __init__.py
+      test_end_to_end.py
+      test_evidence_analysis.py
+      test_quality_calibration.py
+    unit/
+      __init__.py
+      test_core.py
+```

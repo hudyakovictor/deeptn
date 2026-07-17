@@ -1,0 +1,68 @@
+{
+  "created_at_utc": "2026-07-17T15:28:28Z",
+  "files": {
+    "quality_zones": "quality_zones.npz"
+  },
+  "global_texture_quality": {
+    "status": "usable",
+    "texture_score_0_1": 0.8042072057723999
+  },
+  "mask_quality": {
+    "skin_coverage_original": 0.24464130404286957,
+    "skin_pixels_original": 104637,
+    "status": "ok"
+  },
+  "per_zone_quality": {
+    "forehead_L": {
+      "highlight_fraction": 0.0,
+      "laplacian_var": 102.33088684082031,
+      "quality_class": "good",
+      "roi_source": "landmark_skin_fallback_pending_mesh_projection",
+      "shadow_fraction": 0.0,
+      "skin_fraction": 1.0,
+      "tenengrad_mean": 1247.6375732421875,
+      "texture_pixels": 13806,
+      "texture_score_0_1": 0.7460560202598572,
+      "texture_usable": true,
+      "visible_fraction": 0.8999999761581421
+    },
+    "forehead_R": {
+      "highlight_fraction": 0.0,
+      "laplacian_var": 186.85421752929688,
+      "quality_class": "good",
+      "roi_source": "landmark_skin_fallback_pending_mesh_projection",
+      "shadow_fraction": 0.0,
+      "skin_fraction": 1.0,
+      "tenengrad_mean": 2006.8616943359375,
+      "texture_pixels": 14188,
+      "texture_score_0_1": 0.8422065377235413,
+      "texture_usable": true,
+      "visible_fraction": 0.550000011920929
+    },
+    "forehead_center": {
+      "highlight_fraction": 0.0,
+      "laplacian_var": 147.3299560546875,
+      "quality_class": "good",
+      "roi_source": "landmark_skin_fallback_pending_mesh_projection",
+      "shadow_fraction": 0.0,
+      "skin_fraction": 1.0,
+      "tenengrad_mean": 1551.03955078125,
+      "texture_pixels": 15385,
+      "texture_score_0_1": 0.8042072057723999,
+      "texture_usable": true,
+      "visible_fraction": 0.8999999761581421
+    }
+  },
+  "photo_id": "1998_01_01",
+  "pose": {
+    "canonical_yaw": -17.5,
+    "pitch": 16.67360496520996,
+    "pose_bin": "left_light",
+    "roll": -6.434343338012695,
+    "yaw": -13.23037338256836
+  },
+  "schema_version": "deeputin-quality-v1.0",
+  "status": "complete",
+  "supported_forehead_wrinkle_pose_v1": true,
+  "warnings": []
+}
